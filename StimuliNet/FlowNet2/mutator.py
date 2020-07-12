@@ -10,7 +10,7 @@ import tensorflow.compat.v1.keras.layers as layers
 from inspect import stack
 
 class Mutator(object):
-	
+
       graph = tf.get_default_graph()
 
       @staticmethod
@@ -38,7 +38,7 @@ class Mutator(object):
 	     scope = getattr(inst, '_scope')
 	  names[name] = f'{scope}/{op_name}' if scope else op_name
 	  setattr(inst, '_names', names)
-      
+
       @staticmethod
       def Conv2D(filters: int, kernel_size: Tuple[int, int], strides: Tuple[int, int], batch_norm: bool = True, name: str = None) -> Callable:
 	  if name:
@@ -77,7 +77,7 @@ class Mutator(object):
 	      tensor_out = layers.ZeroPadding2D(1)(input_tensor)
 	      return layers.Conv2D(filters=2, kernel_size=(3, 3), name=name)(tensor_out)
 	  return predict_flow
-	
+
       @staticmethod
       def get_operation(name: str, scope: str = None) -> tf.Tensor:
           if scope:
