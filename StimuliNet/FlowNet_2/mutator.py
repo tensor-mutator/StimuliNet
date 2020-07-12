@@ -1,7 +1,7 @@
 """
 @author: Debajyoti Raychaudhuri
 
-A TensorFlow implementation of FlowNetC
+A Mutator module for customized operations
 """
 
 typing import Callable, Tuple
