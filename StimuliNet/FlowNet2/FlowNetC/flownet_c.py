@@ -1,7 +1,7 @@
 """
 @author: Debajyoti Raychaudhuri
 
-A TensorFlow implementation of FlowNet Correlation
+A TensorFlow implementation of FlowNetCorr
 """
 
 from __future__ import print_function, division, absolute_import
