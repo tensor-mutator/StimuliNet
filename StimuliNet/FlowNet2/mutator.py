@@ -9,6 +9,8 @@ import tensorflow.compat.v1 as tf
 import tensorflow.compat.v1.keras.layers as layers
 
 class Mutator(object):
+	
+      graph = tf.get_default_graph()
 
       @staticmethod
       def BatchNorm() -> Callable:
@@ -48,3 +50,9 @@ class Mutator(object):
 	      tensor_out = layers.ZeroPadding2D(1)(input_tensor)
 	      return layers.Conv2D(filters=2, kernel_size=(3, 3), name=name)(tensor_out)
 	  return predict_flow
+	
+      @staticmethod
+      def get_operation(name: str, scope: str = None) -> tf.Tensor:
+          if scope:
+	     return Mutator.graph.get_operation_by_name(f'{scope}/{name}').outputs[0]
+          return Mutator.graph.get_operation_by_name(f'{name}').outputs[0]
