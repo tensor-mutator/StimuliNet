@@ -8,8 +8,8 @@ from __future__ import print_function, division, absolute_import
 import tensorflow.compat.v1 as tf
 import tensorflow.compat.v1.keras.layers as layers
 from typing import Tuple, Callable
-from .correlation_package.correlation import Correlation
-from .mutator import Mutator
+from ..correlation_package.correlation import Correlation
+from ..mutator import Mutator
 
 class FlowNetC(object):
 
