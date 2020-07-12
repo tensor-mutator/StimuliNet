@@ -17,6 +17,7 @@ class FlowNetC(object):
           self._image_1 = self._image_2 = tf.placeholder(shape=(None,) + image_size, dtype=tf.float32)
           self._batch_norm = batch_norm
           self._div_flow = div_flow
+          self._scope = 'FlowNetC'
           self._build_model_with_scope()
 
       def _fusion_stream(self, name: str) -> Callable:
@@ -28,10 +29,10 @@ class FlowNetC(object):
           return create_fusion_stream
  
       def _build_model_with_scope(self) -> tf.Tensor:
-          with tf.variable_scope('FlowNetC'):
+          with tf.variable_scope(self._scope):
                return self._build_model()
 
-      def _build_model(self) -> tf.Tensor:
+      def _build_model(self) -> None:
           stream1_tensor_out = self._fusion_stream()(self._image_1, 'a')
           stream2_tensor_out = self._fusion_stream()(self._image_2, 'b')
           corr_out = Correlation(pad_size=20, kernel_size=1, max_displacement=20, stride1=1, stride2=2, corr_multiply=1)(stream1_tensor_out, stream2_tensor_out)
@@ -57,5 +58,8 @@ class FlowNetC(object):
           flow4_up = Mutator.Conv2DTranspose(filters=2, kernel_size=(4, 4), strides=(2, 2), padding=1, name='flow4_up')(flow4)
           deconv3 = Mutator.Deconv(filters=128, name='deconv3')(fuse4)
           fuse3 = tf.concat([conv3_1, deconv3, flow4_up], axis=1, name='fuse3')
-          
-          
+          flow3 = Mutator.PredictFlow(name='flow3')(fuse3)
+          flow3_up = Mutator.Conv2DTranspose(filters=2, kernel_size=(4, 4), strides=(2, 2), padding=1, name='flow3_up')(flow3)
+          deconv2 = Mutator.Deconv(filters=64, name='deconv2')(fuse3)
+          fuse2 = tf.concat([Mutator.get_operation(self._names.get('conv2a')), deconv2, flow3_up], axis=1, name='fuse2')
+          flow2 = Mutator.PredictFlow(name='flow2')(fuse2)
