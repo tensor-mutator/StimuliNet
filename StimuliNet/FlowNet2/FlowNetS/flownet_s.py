@@ -58,5 +58,5 @@ class FlowNetS(object):
           flow3 = Mutator.PredictFlow(name='flow3')(fuse3)
           flow3_up = Mutator.Conv2DTranspose(filters=2, kernel_size=(4, 4), strides=(2, 2), padding=1, name='flow3_up')(flow3)
           deconv2 = Mutator.Deconv(filters=64, name='deconv2')(fuse3)
-          fuse2 = tf.concat([Mutator.get_operation(self._names.get('conv2a')), deconv2, flow3_up], axis=1, name='fuse2')
+          fuse2 = tf.concat([Mutator.get_operation(self._names.get('conv2')), deconv2, flow3_up], axis=1, name='fuse2')
           flow2 = Mutator.PredictFlow(name='flow2')(fuse2)
