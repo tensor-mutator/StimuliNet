@@ -18,7 +18,7 @@ class FlowNetC(object):
           self._batch_norm = batch_norm
           self._div_flow = div_flow
           self._scope = 'FlowNetC'
-          self._build_model_with_scope()
+          self._build_graph_with_scope()
 
       def _fusion_stream(self, name: str) -> Callable:
           def create_fusion_stream(input: tf.Tensor) -> tf.Tensor
@@ -28,14 +28,14 @@ class FlowNetC(object):
               return conv3
           return create_fusion_stream
  
-      def _build_model_with_scope(self) -> tf.Graph:
+      def _build_graph_with_scope(self) -> tf.Graph:
           graph = tf.Graph()
           with graph.as_default():
                with tf.variable_scope(self._scope):
-                    self._build_model()
+                    self._build_graph()
           return graph
 
-      def _build_model(self) -> None:
+      def _build_graph(self) -> None:
           stream1_tensor_out = self._fusion_stream()(self._image_1, 'a')
           stream2_tensor_out = self._fusion_stream()(self._image_2, 'b')
           corr_out = Correlation(pad_size=20, kernel_size=1, max_displacement=20, stride1=1, stride2=2, corr_multiply=1)(stream1_tensor_out, stream2_tensor_out)
