@@ -40,5 +40,8 @@ class FlowNetC(object):
           conv5_1 = Mutator.Conv2D(filters=512, kernel_size=(3, 3), batch_norm=self._batch_norm, name='conv5_1')(conv5)
           conv6 = Mutator.Conv2D(filters=1024, kernel_size=(3, 3), strides=(2, 2), batch_norm=self._batch_norm, name='conv6')(conv5_1)
           conv6_1 = Mutator.Conv2D(filters=1024, kernel_size=(3, 3), batch_norm=self._batch_norm, name='conv6_1')(conv6)
-	  flow6 = Mutator.PredictFlow()(conv6_1)
-	  flow6_up = layers.Conv2DTranspose()
+	  flow6 = Mutator.PredictFlow(name='flow6')(conv6_1)
+	  flow6_up = Mutator.Conv2DTranspose(filters=2, kernel_size=(4, 4), strides=(2, 2), padding=1, name='flow6_up')(flow6)
+	  deconv5 = Mutator.Deconv(filters=512, name='deconv5')(flow6_up)
+	  fuse5 = tf.concat([conv5_1, deconv5, flow6_up], axis=1)
+          
