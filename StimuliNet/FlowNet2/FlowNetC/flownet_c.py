@@ -36,6 +36,7 @@ class FlowNetC(object):
           return self.graph
 
       def _build_graph(self) -> None:
+          Mutator.set_graph(self.graph)
           self._downsampling()
           self._upsampling()
 
