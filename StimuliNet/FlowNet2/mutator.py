@@ -54,7 +54,7 @@ class Mutator(object):
           return conv2d
 
       @staticmethod
-      def ConvInter2D(filters: int, kernel_size: Tuple[int, int], strides: Tuple[int, int], batch_norm: bool = True, name: str = None) -> Callable:
+      def Conv2DInter(filters: int, kernel_size: Tuple[int, int], strides: Tuple[int, int], batch_norm: bool = True, name: str = None) -> Callable:
 	  if name:
 	     if batch_norm:
 		Mutator._set_name_to_instance(name, f'{name}/cond/Identity')
