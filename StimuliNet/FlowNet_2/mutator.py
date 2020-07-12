@@ -19,12 +19,12 @@ class Mutator(object):
           return add_batch_norm
       
       @staticmethod
-      def Conv2D(filters: int, kernel_size: Tuple[int, int], strides: Tuple[int, int], batch_norm=True) -> Callable:
+      def Conv2D(filters: int, kernel_size: Tuple[int, int], strides: Tuple[int, int], batch_norm: bool = True, name: str = None) -> Callable:
           def conv2d(input_tensor: tf.Tensor) -> tf.Tensor:
               tensor_out = layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides)(input_tensor)
               if batch_norm:
                  tensor_out = layers.BatchNormalization()(tensor_out)
-              return layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1))(tensor_out)
+              return layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1), name=name)(tensor_out)
           return conv2d
 
       @staticmethod
