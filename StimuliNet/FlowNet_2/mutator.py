@@ -30,6 +30,6 @@ class Mutator(object):
       @staticmethod
       def PredictFlow() -> Callable:
           def predict_flow(input_tensor: tf.Tensor) -> tf.Tensor:
-	      tensor_out = layers.ZeroPadding1D()(input_tensor)
+	      tensor_out = layers.ZeroPadding2D(1)(input_tensor)
 	      return layers.Conv2D(filters=2, kernel_size=(3, 3))(tensor_out)
 	  return predict_flow
