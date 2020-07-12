@@ -4,7 +4,7 @@
 A Mutator module for customized operations
 """
 
-typing import Callable, Tuple
+from typing import Callable, Tuple
 import tensorflow.compat.v1 as tf
 import tensorflow.compat.v1.keras.layers as layers
 from inspect import stack
