@@ -17,6 +17,7 @@ class FlowNetC(object):
           self._image_1 = self._image_2 = tf.placeholder(shape=(None,) + image_size, dtype=tf.float32)
           self._batch_norm = batch_norm
           self._div_flow = div_flow
+          self._build_model_with_scope()
 
       def _fusion_stream(self, name: str) -> Callable:
           def create_fusion_stream(input: tf.Tensor) -> tf.Tensor
@@ -25,14 +26,18 @@ class FlowNetC(object):
               conv3 = Mutator.Conv2D(filters=256, kernel_size=(5, 5), strides=(2, 2), batch_norm=self._batch_norm, name=f'conv3{name}')(conv2)
               return conv3
           return create_fusion_stream
+ 
+      def _build_model_with_scope(self) -> tf.Tensor:
+          with tf.variable_scope('FlowNetC'):
+               return self._build_model()
 
       def _build_model(self) -> tf.Tensor:
           stream1_tensor_out = self._fusion_stream()(self._image_1, 'a')
           stream2_tensor_out = self._fusion_stream()(self._image_2, 'b')
           corr_out = Correlation(pad_size=20, kernel_size=1, max_displacement=20, stride1=1, stride2=2, corr_multiply=1)(stream1_tensor_out, stream2_tensor_out)
-          corr_out = layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1))(corr_out)
-          conv_redir_out = Mutator.Conv2D(filters=32, kernel_size=(1, 1), strides=(1, 1), batch_norm=self._batch_norm)(stream1_tensor_out)
-          fused = tf.concat([conv_redir_out, corr_out], axis=1)
+          corr_out = layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1), name='correlation')(corr_out)
+          conv_redir_out = Mutator.Conv2D(filters=32, kernel_size=(1, 1), strides=(1, 1), batch_norm=self._batch_norm, name='conv_redir')(stream1_tensor_out)
+          fused = tf.concat([conv_redir_out, corr_out], axis=1, name='fuse')
           conv3_1 = Mutator.Conv2D(filters=256, kernel_size=(3, 3), batch_norm=self._batch_norm, name='conv3_1')(fused)
           conv4 = Mutator.Conv2D(filters=512, kernel_size=(3, 3), strides=(2, 2), batch_norm=self._batch_norm, name='conv4')(conv3_1)
           conv4_1 = Mutator.Conv2D(filters=512, kernel_size=(3, 3), batch_norm=self._batch_norm, name='conv4_1')(conv4)
@@ -42,5 +47,15 @@ class FlowNetC(object):
           conv6_1 = Mutator.Conv2D(filters=1024, kernel_size=(3, 3), batch_norm=self._batch_norm, name='conv6_1')(conv6)
           flow6 = Mutator.PredictFlow(name='flow6')(conv6_1)
           flow6_up = Mutator.Conv2DTranspose(filters=2, kernel_size=(4, 4), strides=(2, 2), padding=1, name='flow6_up')(flow6)
-          deconv5 = Mutator.Deconv(filters=512, name='deconv5')(flow6_up)
-          fuse5 = tf.concat([conv5_1, deconv5, flow6_up], axis=1)
+          deconv5 = Mutator.Deconv(filters=512, name='deconv5')(conv6_1)
+          fuse5 = tf.concat([conv5_1, deconv5, flow6_up], axis=1, name='fuse5')
+          flow5 = Mutator.PredictFlow(name='flow5')(fuse5)
+          flow5_up = Mutator.Conv2DTranspose(filters=2, kernel_size=(4, 4), strides=(2, 2), padding=1, name='flow5_up')(flow5)
+          deconv4 = Mutator.Deconv(filters=256, name='deconv4')(fuse5)
+          fuse4 = tf.concat([conv4_1, deconv4, flow5_up], axis=1, name='fuse4')
+          flow4 = Mutator.PredictFlow(name='flow4')(fuse4)
+          flow4_up = Mutator.Conv2DTranspose(filters=2, kernel_size=(4, 4), strides=(2, 2), padding=1, name='flow4_up')(flow4)
+          deconv3 = Mutator.Deconv(filters=128, name='deconv3')(fuse4)
+          fuse3 = tf.concat([conv3_1, deconv3, flow4_up], axis=1, name='fuse3')
+          
+          
