@@ -11,7 +11,9 @@ from inspect import stack
 
 class Mutator(object):
 
-      graph = tf.get_default_graph()
+      @classmethod
+      def set_graph(cls, graph: tf.Graph) -> None:
+	  cls.graph = graph
 
       @staticmethod
       def BatchNorm() -> Callable:
