@@ -28,9 +28,12 @@ class FlowNetC(object):
               return conv3
           return create_fusion_stream
  
-      def _build_model_with_scope(self) -> tf.Tensor:
-          with tf.variable_scope(self._scope):
-               return self._build_model()
+      def _build_model_with_scope(self) -> tf.Graph:
+          graph = tf.Graph()
+          with graph.as_default():
+               with tf.variable_scope(self._scope):
+                    self._build_model()
+          return graph
 
       def _build_model(self) -> None:
           stream1_tensor_out = self._fusion_stream()(self._image_1, 'a')
