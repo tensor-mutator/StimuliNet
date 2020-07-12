@@ -54,6 +54,22 @@ class Mutator(object):
           return conv2d
 
       @staticmethod
+      def InterConv2D(filters: int, kernel_size: Tuple[int, int], strides: Tuple[int, int], batch_norm: bool = True, name: str = None) -> Callable:
+	  if name:
+	     if batch_norm:
+		Mutator._set_name_to_instance(name, f'{name}/cond/Identity')
+	     else:
+		Mutator._set_name_to_instance(name, f'{name}/BiasAdd')
+          def conv2d(input_tensor: tf.Tensor) -> tf.Tensor:
+	      tensor_out = layers.ZeroPadding2D((kernel_size - 1)//2)(input_tensor)
+	      conv_op_name = name if not batch_norm else None
+              tensor_out = layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, name=conv_op_name)(tensor_out)
+              if batch_norm:
+                 tensor_out = layers.BatchNormalization(name=name)(tensor_out)
+              return tensor_out
+          return conv2d
+
+      @staticmethod
       def Conv2DTranspose(filters: int, kernel_size: Tuple[int, int], strides: Tuple[int, int], padding: int = 1, name: str = None) -> Callable:
 	  if name:
 	     Mutator._set_name_to_instance(name, f'{name}/BiasAdd')
