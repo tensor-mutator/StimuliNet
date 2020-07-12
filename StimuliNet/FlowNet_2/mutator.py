@@ -12,7 +12,7 @@ class Mutator(object):
 
       @staticmethod
       def BatchNorm() -> Callable:
-	        def add_batch_norm(input_tensor: tf.Tensor) -> tf.Tensor:
+          def add_batch_norm(input_tensor: tf.Tensor) -> tf.Tensor:
               if self._batch_norm:
                  return layers.BatchNormalization(input_tensor)
               return input_tensor
