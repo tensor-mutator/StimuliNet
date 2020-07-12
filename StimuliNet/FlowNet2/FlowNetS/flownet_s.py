@@ -1,7 +1,7 @@
 """
 @author: Debajyoti Raychaudhuri
 
-A TensorFlow implementation of FlowNet Simple
+A TensorFlow implementation of FlowNetSimple
 """
 
 from __future__ import print_function, division, absolute_import
