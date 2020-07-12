@@ -35,6 +35,14 @@ class Mutator(object):
 	  return conv_2d_transpose
 
       @staticmethod
+      def Deconv(filters: int, name: str = None) -> Callable:
+          def deconv(input_tensor: tf.Tensor) -> tf.Tensor:
+	      tensor_out = layers.ZeroPadding2D(1)(input_tensor)
+	      tensor_out = layers.Conv2DTranspose(filters=filters, kernel_size=(4, 4), strides=(2, 2))(tensor_out)
+	      return layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1))(tensor_out)
+          return deconv
+
+      @staticmethod
       def PredictFlow(name: str = None) -> Callable:
           def predict_flow(input_tensor: tf.Tensor) -> tf.Tensor:
 	      tensor_out = layers.ZeroPadding2D(1)(input_tensor)
