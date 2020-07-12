@@ -27,7 +27,7 @@ class FlowNetC(object):
               conv3 = Mutator.Conv2D(filters=256, kernel_size=(5, 5), strides=(2, 2), batch_norm=self._batch_norm, name=f'conv3{name}')(conv2)
               return conv3
           return create_fusion_stream
- 
+
       def _build_graph_with_scope(self) -> tf.Graph:
           graph = tf.Graph()
           with graph.as_default():
