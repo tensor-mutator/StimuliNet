@@ -1,4 +1,10 @@
-from typing import Callable, Tuple
+"""
+@author: Debajyoti Raychaudhuri
+
+A TensorFlow implementation of FlowNetC
+"""
+
+typing import Callable, Tuple
 import tensorflow.compat.v1 as tf
 import tensorflow.compat.v1.keras.layers as layers
 
