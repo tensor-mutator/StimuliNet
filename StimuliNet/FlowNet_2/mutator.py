@@ -28,6 +28,13 @@ class Mutator(object):
           return conv2d
 
       @staticmethod
+      def Conv2DTranspose(filters: int, kernel_size: Tuple[int, int], strides: Tuple[int, int], padding: int = 1, name: str = None) -> Callable:
+	  def conv_2d_transpose(input_tensor: tf.Tensor) -> tf.Tensor:
+	      tensor_out = layers.ZeroPadding2D(padding)(input_tensor)
+	      return layers.Conv2DTranspose(filters=filters, kernel_size=kernel_size, strides=strides, name=name)(tensor_out)
+	  return conv_2d_transpose
+
+      @staticmethod
       def PredictFlow(name: str = None) -> Callable:
           def predict_flow(input_tensor: tf.Tensor) -> tf.Tensor:
 	      tensor_out = layers.ZeroPadding2D(1)(input_tensor)
