@@ -12,10 +12,9 @@ from ..mutator import Mutator
 
 class FlowNetS(object):
 
-      def __init__(self, image_hw: Tuple[int, int], input_channels: int = 12, batch_norm: bool = True) -> None:
-          self._input_channels = input_channels
+      def __init__(self, image: Tuple[int, int, int], batch_norm: bool = True) -> None: 
           self._batch_norm = batch_norm
-          self._input = tf.placeholder(dtype=tf.float32, shape=(None,) + image_hw + (input_channels,))
+          self._input = tf.placeholder(dtype=tf.float32, shape=(None,) + image)
           self._scope = 'FlowNetS'
           self._build_graph_with_scope()
 
