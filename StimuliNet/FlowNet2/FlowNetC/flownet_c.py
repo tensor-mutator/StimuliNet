@@ -29,11 +29,11 @@ class FlowNetC(object):
           return create_fusion_stream
 
       def _build_graph_with_scope(self) -> tf.Graph:
-          graph = tf.Graph()
-          with graph.as_default():
+          self.graph = tf.Graph()
+          with self.graph.as_default():
                with tf.variable_scope(self._scope):
                     self._build_graph()
-          return graph
+          return self.graph
 
       def _build_graph(self) -> None:
           stream1_tensor_out = self._fusion_stream()(self._image_1, 'a')
