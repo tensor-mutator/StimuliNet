@@ -13,8 +13,8 @@ from ..mutator import Mutator
 
 class FlowNetC(object):
 
-      def __init__(self, image_hwc: Tuple[int, int, int], batch_norm: bool = True, div_flow: int = 20) -> None:
-          self._image_1 = self._image_2 = tf.placeholder(shape=(None,) + image_hwc, dtype=tf.float32)
+      def __init__(self, image: Tuple[int, int, int], batch_norm: bool = True, div_flow: int = 20) -> None:
+          self._image_1 = self._image_2 = tf.placeholder(shape=(None,) + image, dtype=tf.float32)
           self._batch_norm = batch_norm
           self._div_flow = div_flow
           self._scope = 'FlowNetC'
