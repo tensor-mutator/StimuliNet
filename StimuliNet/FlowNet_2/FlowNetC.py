@@ -1,3 +1,9 @@
+"""
+@author: Debajyoti Raychaudhuri
+
+A TensorFlow implementation of FlowNetC
+"""
+
 from __future__ import print_function, division, absolute_import
 import tensorflow.compat.v1 as tf
 import tensorflow.compat.v1.keras.layers as layers
