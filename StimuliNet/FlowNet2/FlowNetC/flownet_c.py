@@ -41,8 +41,8 @@ class FlowNetC(object):
           self._upsampling()
 
       def _downsampling(self) -> None:
-          stream1_tensor_out = self._fusion_stream()(self._image_1, 'a')
-          stream2_tensor_out = self._fusion_stream()(self._image_2, 'b')
+          stream1_tensor_out = self._fusion_stream('a')(self._image_1)
+          stream2_tensor_out = self._fusion_stream('b')(self._image_2)
           corr_out = Correlation(pad_size=20, kernel_size=1, max_displacement=20, stride1=1, stride2=2, corr_multiply=1)(stream1_tensor_out, stream2_tensor_out)
           corr_out = layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1), name='correlation')(corr_out)
           conv_redir_out = Mutator.Conv2D(filters=32, kernel_size=(1, 1), strides=(1, 1), batch_norm=self._batch_norm, name='conv_redir')(stream1_tensor_out)
