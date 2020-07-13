@@ -8,8 +8,8 @@ from __future__ import print_function, division, absolute_import
 import tensorflow.compat.v1 as tf
 import tensorflow.compat.v1.keras.layers as layers
 from typing import Tuple, Callable
-from ..correlation_package.correlation import Correlation
-from ..mutator import Mutator
+from FlowNet2.correlation_package.correlation import Correlation
+from FlowNet2.mutator import Mutator
 
 class FlowNetC(object):
 
@@ -21,7 +21,7 @@ class FlowNetC(object):
           self._build_graph_with_scope()
 
       def _fusion_stream(self, name: str) -> Callable:
-          def create_fusion_stream(input: tf.Tensor) -> tf.Tensor
+          def create_fusion_stream(input: tf.Tensor) -> tf.Tensor:
               conv1 = Mutator.Conv2D(filters=64, kernel_size=(7, 7), strides=(2, 2), batch_norm=self._batch_norm, name=f'conv1{name}')(input)
               conv2 = Mutator.Conv2D(filters=128, kernel_size=(5, 5), strides=(2, 2), batch_norm=self._batch_norm, name=f'conv2{name}')(conv1)
               conv3 = Mutator.Conv2D(filters=256, kernel_size=(5, 5), strides=(2, 2), batch_norm=self._batch_norm, name=f'conv3{name}')(conv2)

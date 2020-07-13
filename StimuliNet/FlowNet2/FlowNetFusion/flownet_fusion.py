@@ -8,7 +8,7 @@ from __future__ import print_function, division, absolute_import
 import tensorflow.compat.v1 as tf
 import tensorflow.comapt.v1.keras.layers as layers
 from typing import Tuple, Callable
-from ..mutator import Mutator
+from FlowNet2.mutator import Mutator
 
 class FlowNetFusion(object):
 
