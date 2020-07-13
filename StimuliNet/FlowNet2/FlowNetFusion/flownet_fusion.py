@@ -6,9 +6,10 @@ A TensorFlow implementation of FlowNetFusion
 
 from __future__ import print_function, division, absolute_import
 import tensorflow.compat.v1 as tf
-import tensorflow.comapt.v1.keras.layers as layers
+import tensorflow.compat.v1.keras.layers as layers
 from typing import Tuple, Callable
 from FlowNet2.mutator import Mutator
+import os
 
 class FlowNetFusion(object):
 
@@ -49,3 +50,7 @@ class FlowNetFusion(object):
           fuse0 = tf.concat([Mutator.get_operation(self._names.get('conv0')), deconv0, flow1_up], axis=1, name='fuse0')
           interconv0 = Mutator.Conv2DInter(filters=16, kernel_size=(3, 3), batch_norm=self._batch_norm, name='interconv0')(fuse0)
           flow0 = Mutator.PredictFlow(name='flow0')(interconv0)
+
+      def get_graph(self, dest: str = os.getcwd()) -> None:
+          writer = tf.summary.FileWriter(dest, graph=self.graph)
+          writer.close()

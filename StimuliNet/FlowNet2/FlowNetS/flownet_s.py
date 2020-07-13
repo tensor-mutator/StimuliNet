@@ -9,6 +9,7 @@ import tensorflow.compat.v1 as tf
 import tensorflow.compat.v1.keras.layers as layers
 from typing import Tuple
 from FlowNet2.mutator import Mutator
+import os
 
 class FlowNetS(object):
 
@@ -60,3 +61,7 @@ class FlowNetS(object):
           deconv2 = Mutator.Deconv(filters=64, name='deconv2')(fuse3)
           fuse2 = tf.concat([Mutator.get_operation(self._names.get('conv2')), deconv2, flow3_up], axis=1, name='fuse2')
           flow2 = Mutator.PredictFlow(name='flow2')(fuse2)
+
+      def get_graph(self, dest: str = os.getcwd()) -> None:
+          writer = tf.summary.FileWriter(dest, graph=self.graph)
+          writer.close()
