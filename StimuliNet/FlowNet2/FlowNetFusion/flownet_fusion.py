@@ -13,9 +13,9 @@ import os
 
 class FlowNetFusion(object):
 
-      def __init__(self, image: Tuple[int, int, int], batch_norm: bool = True) -> None:
+      def __init__(self, patch: Tuple[int, int, int], batch_norm: bool = True) -> None:
           self._batch_norm = batch_norm
-          self._input = tf.placeholder(dtype=tf.float32, shape=(None,) + image)
+          self._input = tf.placeholder(dtype=tf.float32, shape=(None,) + patch, name='patch')
           self._scope = 'FlowNetFusion'
           self._build_graph_with_scope()
 
