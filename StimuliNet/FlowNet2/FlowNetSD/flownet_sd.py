@@ -14,9 +14,10 @@ import os
 
 class FlowNetSD(Network):
 
-      def __init__(self, image: Tuple[int, int, int], batch_norm: bool = True) -> None:
+      def __init__(self, image: Tuple[int, int, int], batch_norm: bool = True, trainable: bool = True) -> None:
           self._batch_norm = batch_norm
           self._image = image
+          self._trainable = trainable
           self._scope = 'FlowNetS'
           self._build_graph_with_scope()
 
@@ -29,6 +30,7 @@ class FlowNetSD(Network):
 
       def _build_graph(self) -> None:
           Mutator.set_graph(self.graph)
+          Mutator.trainable = self._trainable
           self._image_1 = tf.placeholder(dtype=tf.float32, shape=(None,) + self._image, name='image_1_sd')
           self._image_2 = tf.placeholder(dtype=tf.float32, shape=(None,) + self._image, name='image_2_sd')
           self._input = tf.concat([self._image_1, self._image_2], axis=3, name='input_sd')

@@ -15,10 +15,11 @@ import os
 
 class FlowNetC(Network):
 
-      def __init__(self, image: Tuple[int, int, int], batch_norm: bool = True, div_flow: int = 20) -> None:
+      def __init__(self, image: Tuple[int, int, int], batch_norm: bool = True, div_flow: int = 20, trainable: bool = True) -> None:
           self._image = image
           self._batch_norm = batch_norm
           self._div_flow = div_flow
+          self._trainable = trainable
           self._scope = 'FlowNetC'
           self._build_graph_with_scope()
 
@@ -43,6 +44,7 @@ class FlowNetC(Network):
 
       def _build_graph(self) -> None:
           Mutator.set_graph(self.graph)
+          Mutator.trainable = self._trainable
           self._image_1 = tf.placeholder(shape=(None,) + self._image, dtype=tf.float32, name='image_1_c')
           self._image_2 = tf.placeholder(shape=(None,) + self._image, dtype=tf.float32, name='image_2_c')
           self._downsampling()
@@ -52,7 +54,7 @@ class FlowNetC(Network):
           stream1_tensor_out = self._fusion_stream('a')(self._image_1)
           stream2_tensor_out = self._fusion_stream('b')(self._image_2)
           corr_out = Correlation(pad_size=20, kernel_size=1, max_displacement=20, stride1=1, stride2=2, corr_multiply=1)(stream1_tensor_out, stream2_tensor_out)
-          corr_out = layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1), name='correlation')(corr_out)
+          corr_out = layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1), trainable=self._trainable, name='correlation')(corr_out)
           conv_redir_out = Mutator.Conv2D(filters=32, kernel_size=(1, 1), strides=(1, 1), batch_norm=self._batch_norm, name='conv_redir')(stream1_tensor_out)
           fused = tf.concat([conv_redir_out, corr_out], axis=1, name='fuse')
           conv3_1 = Mutator.Conv2D(filters=256, kernel_size=(3, 3), batch_norm=self._batch_norm, name='conv3_1')(fused)
@@ -93,6 +95,3 @@ class FlowNetC(Network):
       def get_graph(self, dest: str = os.getcwd()) -> None:
           writer = tf.summary.FileWriter(dest, graph=self.graph)
           writer.close()
-
-      def loss(self, flow: tf.Tensor, predictions: tf.Tensor) -> tf.Tensor:
-          pass

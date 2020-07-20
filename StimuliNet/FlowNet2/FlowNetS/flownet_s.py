@@ -14,9 +14,10 @@ import os
 
 class FlowNetS(Network):
 
-      def __init__(self, patch: tf.TensorShape, batch_norm: bool = True) -> None: 
+      def __init__(self, patch: tf.TensorShape, batch_norm: bool = True, trainable: bool = True) -> None: 
           self._batch_norm = batch_norm
           self._patch = patch
+          self._trainable = trainable
           self._scope = 'FlowNetS'
           self._build_graph_with_scope()
 
@@ -29,6 +30,7 @@ class FlowNetS(Network):
 
       def _build_graph(self) -> None:
           Mutator.set_graph(self.graph)
+          Mutator.trainable = self._trainable
           self._input = tf.placeholder(dtype=tf.float32, shape=self._patch, name='input_s')
           self._downsampling()
           self._upsampling()

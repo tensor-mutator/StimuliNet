@@ -11,6 +11,8 @@ from inspect import stack
 
 class Mutator(object):
 
+      trainable = True
+
       @classmethod
       def set_graph(cls, graph: tf.Graph) -> None:
           cls.graph = graph
@@ -19,7 +21,7 @@ class Mutator(object):
       def BatchNorm() -> Callable:
           def add_batch_norm(input_tensor: tf.Tensor) -> tf.Tensor:
               if self._batch_norm:
-                 return layers.BatchNormalization(input_tensor)
+                 return layers.BatchNormalization(trainable=Mutator.trainable)(input_tensor)
               return input_tensor
           return add_batch_norm
 
@@ -52,11 +54,11 @@ class Mutator(object):
           if name:
              Mutator._set_name_to_instance(name, f'{name}/LeakyRelu')
           def conv2d(input_tensor: tf.Tensor) -> tf.Tensor:
-              tensor_out = layers.ZeroPadding2D((kernel_size - 1)//2)(input_tensor)
-              tensor_out = layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides)(tensor_out)
+              tensor_out = layers.ZeroPadding2D((kernel_size - 1)//2, trainable=Mutator.trainable)(input_tensor)
+              tensor_out = layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, trainable=Mutator.trainable)(tensor_out)
               if batch_norm:
-                 tensor_out = layers.BatchNormalization()(tensor_out)
-              return layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1), name=name)(tensor_out)
+                 tensor_out = layers.BatchNormalization(trainable=Mutator.trainable)(tensor_out)
+              return layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1), trainable=Mutator.trainable, name=name)(tensor_out)
           return conv2d
 
       @staticmethod
@@ -67,11 +69,11 @@ class Mutator(object):
              else:
                 Mutator._set_name_to_instance(name, f'{name}/BiasAdd')
           def conv2d(input_tensor: tf.Tensor) -> tf.Tensor:
-              tensor_out = layers.ZeroPadding2D((kernel_size - 1)//2)(input_tensor)
+              tensor_out = layers.ZeroPadding2D((kernel_size - 1)//2, trainable=Mutator.trainable)(input_tensor)
               conv_op_name = name if not batch_norm else None
-              tensor_out = layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, name=conv_op_name)(tensor_out)
+              tensor_out = layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, trainable=Mutator.trainable, name=conv_op_name)(tensor_out)
               if batch_norm:
-                 tensor_out = layers.BatchNormalization(name=name)(tensor_out)
+                 tensor_out = layers.BatchNormalization(trainable=Mutator.trainable, name=name)(tensor_out)
               return tensor_out
           return conv2d
 
@@ -80,8 +82,8 @@ class Mutator(object):
           if name:
              Mutator._set_name_to_instance(name, f'{name}/BiasAdd')
           def conv_2d_transpose(input_tensor: tf.Tensor) -> tf.Tensor:
-              tensor_out = layers.ZeroPadding2D(padding)(input_tensor)
-              return layers.Conv2DTranspose(filters=filters, kernel_size=kernel_size, strides=strides, name=name)(tensor_out)
+              tensor_out = layers.ZeroPadding2D(padding, trainable=Mutator.trainable)(input_tensor)
+              return layers.Conv2DTranspose(filters=filters, kernel_size=kernel_size, strides=strides, trainable=Mutator.trainable, name=name)(tensor_out)
           return conv_2d_transpose
 
       @staticmethod
@@ -89,9 +91,9 @@ class Mutator(object):
           if name:
              Mutator._set_name_to_instance(name, f'{name}/LeakyRelu')
           def deconv(input_tensor: tf.Tensor) -> tf.Tensor:
-              tensor_out = layers.ZeroPadding2D(1)(input_tensor)
-              tensor_out = layers.Conv2DTranspose(filters=filters, kernel_size=(4, 4), strides=(2, 2))(tensor_out)
-              return layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1))(tensor_out)
+              tensor_out = layers.ZeroPadding2D(1, trainable=Mutator.trainable)(input_tensor)
+              tensor_out = layers.Conv2DTranspose(filters=filters, kernel_size=(4, 4), strides=(2, 2), trainable=Mutator.trainable)(tensor_out)
+              return layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1), trainable=Mutator.trainable)(tensor_out)
           return deconv
 
       @staticmethod
@@ -99,8 +101,8 @@ class Mutator(object):
           if name:
              Mutator._set_name_to_instance(name, f'{name}/BiasAdd')
           def predict_flow(input_tensor: tf.Tensor) -> tf.Tensor:
-              tensor_out = layers.ZeroPadding2D(1)(input_tensor)
-              return layers.Conv2D(filters=2, kernel_size=(3, 3), name=name)(tensor_out)
+              tensor_out = layers.ZeroPadding2D(1, trainable=Mutator.trainable)(input_tensor)
+              return layers.Conv2D(filters=2, kernel_size=(3, 3), trainable=Mutator.trainable, name=name)(tensor_out)
           return predict_flow
 
       @staticmethod
