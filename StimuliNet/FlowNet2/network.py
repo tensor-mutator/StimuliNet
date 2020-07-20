@@ -1,3 +1,10 @@
+"""
+@author: Debajyoti Raychaudhuri
+
+An abstract template to implement
+the network components
+"""
+
 from abc import ABCMeta, abstractmethod
 import tensorflow.compat.v1 as tf
 from typing import Sequence
