@@ -9,9 +9,10 @@ import tensorflow.compat.v1 as tf
 import tensorflow.compat.v1.keras.layers as layers
 from typing import Tuple
 from FlowNet2.mutator import Mutator
+from FlowNet.network import Network
 import os
 
-class FlowNetSD(object):
+class FlowNetSD(Network):
 
       def __init__(self, image: Tuple[int, int, int], batch_norm: bool = True) -> None:
           self._batch_norm = batch_norm
