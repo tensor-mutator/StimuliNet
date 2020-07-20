@@ -7,7 +7,7 @@ A TensorFlow implementation of FlowNetSimple
 from __future__ import print_function, division, absolute_import
 import tensorflow.compat.v1 as tf
 import tensorflow.compat.v1.keras.layers as layers
-from typing import Tuple
+from typing import Tuple, Sequence
 from FlowNet2.mutator import Mutator
 from FlowNet.network import Network
 import os
@@ -16,7 +16,7 @@ class FlowNetS(Network):
 
       def __init__(self, patch: Tuple[int, int, int], batch_norm: bool = True) -> None: 
           self._batch_norm = batch_norm
-          self._input = tf.placeholder(dtype=tf.float32, shape=(None,) + patch, name='input_s')
+          self._patch = patch
           self._scope = 'FlowNetS'
           self._build_graph_with_scope()
 
@@ -29,6 +29,7 @@ class FlowNetS(Network):
 
       def _build_graph(self) -> None:
           Mutator.set_graph(self.graph)
+          self._input = tf.placeholder(dtype=tf.float32, shape=(None,) + self._patch, name='input_s')
           self._downsampling()
           self._upsampling()
 
@@ -61,8 +62,16 @@ class FlowNetS(Network):
           flow3_up = Mutator.Conv2DTranspose(filters=2, kernel_size=(4, 4), strides=(2, 2), padding=1, name='flow3_up')(flow3)
           deconv2 = Mutator.Deconv(filters=64, name='deconv2')(fuse3)
           fuse2 = tf.concat([Mutator.get_operation(self._names.get('conv2')), deconv2, flow3_up], axis=1, name='fuse2')
-          flow2 = Mutator.PredictFlow(name='flow2')(fuse2)
+          self._flow2 = Mutator.PredictFlow(name='flow2')(fuse2)
 
+      @property
+      def inputs(self) -> Sequence[tf.Tensor]:
+          return [self._input]
+
+      @property
+      def ouputs(self) -> Sequence[tf.Tensor]:
+          return [self._flow2]
+      
       def get_graph(self, dest: str = os.getcwd()) -> None:
           writer = tf.summary.FileWriter(dest, graph=self.graph)
           writer.close()
