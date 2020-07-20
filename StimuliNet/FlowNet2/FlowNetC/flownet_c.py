@@ -10,7 +10,7 @@ import tensorflow.compat.v1.keras.layers as layers
 from typing import Tuple, Callable, Sequence
 from FlowNet2.correlation_package.correlation import Correlation
 from FlowNet2.mutator import Mutator
-from FlowNet.network import Network
+from FlowNet2.network import Network
 import os
 
 class FlowNetC(Network):
