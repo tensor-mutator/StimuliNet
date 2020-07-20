@@ -1,5 +1,5 @@
 """
-@author: Debajoti Raychaudhuri
+@author: Debajyoti Raychaudhuri
 
 A TensorFlow implementation of FlowNetCSS
 """
