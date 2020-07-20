@@ -40,7 +40,7 @@ class FlowNetCS(Network):
           flownet_c_patch = tf.import_graph_def(flownet_c.graph_def,
                                                 input_map={x.name: [self._image_1, self._image_2][i] for i, x in enumerate(flownet_c.inputs)},
                                                 return_elements=list(map(lambda x: x.name, flownet_c.outputs)))
-          flownet_s_input_tensor = self._compute_input_tensor_flow_flownet_s(self._image_1, self._image_2, flownet_c_patch)
+          flownet_s_input_tensor = self._compute_input_tensor_for_flownet_s(self._image_1, self._image_2, flownet_c_patch)
           flownet_s = FlowNetS(flownet_s_input_tensor.get_shape(), self._batch_norm)
           self._flownet_cs_patch = tf.import_graph_def(flownet_s.graph_def,
                               input_map={flownet_s.inputs[0].name: flownet_s_input_tensor},
@@ -48,8 +48,8 @@ class FlowNetCS(Network):
 
       def _compute_input_tensor_for_flownet_s(self, image_1: tf.Tensor, image_2: tf.Tensor, flow_out: tf.Tensor) -> tf.Tensor:
           warped = FlowWarp(image_2, flow_out)
-          brightness_error = tf.sqrt(tf.reduce_sum(tf.square(image_1 - warped), axis=-1, keep_dims=True))
-          return brightness_error
+          brightness_error = Mutator.ChannelNorm()(image_1 - warped)
+          return tf.concat([image_1, image_2, warped, flow_out * 0.05, brightness_error], axis=-1)
 
       @property
       def inputs(self) -> Sequence[tf.Tensor]:

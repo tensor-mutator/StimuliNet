@@ -24,6 +24,12 @@ class Mutator(object):
           return add_batch_norm
 
       @staticmethod
+      def ChannelNorm() -> Callable:
+          def add_channel_norm(input_tensor: tf.Tensor) -> tf.Tensor:
+              return tf.sqrt(tf.reduce_sum(tf.square(input_tensor), axis=-1, keep_dims=True))
+          return add_channel_norm    
+
+      @staticmethod
       def _set_name_to_instance(name: str, op_name: str) -> None:
           stack_frames = stack()
           frame_idx = 0
