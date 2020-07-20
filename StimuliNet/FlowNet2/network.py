@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 import tensorflow.compat.v1 as tf
+from typing import Sequence
 
 class Network(metaclass=ABCMeta):
 
