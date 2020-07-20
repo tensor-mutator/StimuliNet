@@ -15,9 +15,9 @@ class FlowNetSD(object):
 
       def __init__(self, image: Tuple[int, int, int], batch_norm: bool = True) -> None:
           self._batch_norm = batch_norm
-          self._image_1 = tf.placeholder(dtype=tf.float32, shape=(None,) + image, name='image_1')
-          self._image_2 = tf.placeholder(dtype=tf.float32, shape=(None,) + image, name='image_2')
-          self._input = tf.concat([self._image_1, self._image_2], axis=3, name='patch')
+          self._image_1 = tf.placeholder(dtype=tf.float32, shape=(None,) + image, name='image_1_sd')
+          self._image_2 = tf.placeholder(dtype=tf.float32, shape=(None,) + image, name='image_2_sd')
+          self._input = tf.concat([self._image_1, self._image_2], axis=3, name='input_sd')
           self._scope = 'FlowNetS'
           self._build_graph_with_scope()
 
