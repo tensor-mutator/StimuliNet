@@ -7,7 +7,7 @@ A TensorFlow implementation of FlowNetSD
 from __future__ import print_function, division, absolute_import
 import tensorflow.compat.v1 as tf
 import tensorflow.compat.v1.keras.layers as layers
-from typing import Tuple
+from typing import Tuple, Sequence
 from FlowNet2.mutator import Mutator
 from FlowNet.network import Network
 import os
@@ -16,9 +16,7 @@ class FlowNetSD(Network):
 
       def __init__(self, image: Tuple[int, int, int], batch_norm: bool = True) -> None:
           self._batch_norm = batch_norm
-          self._image_1 = tf.placeholder(dtype=tf.float32, shape=(None,) + image, name='image_1_sd')
-          self._image_2 = tf.placeholder(dtype=tf.float32, shape=(None,) + image, name='image_2_sd')
-          self._input = tf.concat([self._image_1, self._image_2], axis=3, name='input_sd')
+          self._image = image
           self._scope = 'FlowNetS'
           self._build_graph_with_scope()
 
@@ -31,6 +29,9 @@ class FlowNetSD(Network):
 
       def _build_graph(self) -> None:
           Mutator.set_graph(self.graph)
+          self._image_1 = tf.placeholder(dtype=tf.float32, shape=(None,) + self._image, name='image_1_sd')
+          self._image_2 = tf.placeholder(dtype=tf.float32, shape=(None,) + self._image, name='image_2_sd')
+          self._input = tf.concat([self._image_1, self._image_2], axis=3, name='input_sd')
           self._downsampling()
           self._upsampling()
 
@@ -70,7 +71,15 @@ class FlowNetSD(Network):
           deconv2 = Mutator.Deconv(filters=64, name='deconv2')(fuse3)
           fuse2 = tf.concat([Mutator.get_operation(self._names.get('conv2_1')), deconv2, flow3_up], axis=1, name='fuse2')
           interconv2 = Mutator.Conv2DInter(filters=64, kernel_size=(3, 3), batch_norm=self._batch_norm, name='interconv2')(fuse2)
-          flow2 = Mutator.PredictFlow(name='flow2')(interconv2)
+          self._flow2 = Mutator.PredictFlow(name='flow2')(interconv2)
+
+      @property
+      def inputs(self) -> Sequence[tf.Tensor]:
+          return [self._image_1, self._image_2]
+
+      @property
+      def outputs(self) -> Sequence[tf.Tensor]:
+          return self._flow2
 
       def get_graph(self, dest: str = os.getcwd()) -> None:
           writer = tf.summary.FileWriter(dest, graph=self.graph)
