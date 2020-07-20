@@ -12,7 +12,7 @@ from FlowNet2.flow_warp import FlowWarp
 from typing import Tuple, Sequence
 import tensorflow.compat.v1 as tf
 
-class FlowNetCS(Network):
+class FlowNetCSS(Network):
 
       def __init__(self, image: Tuple[int, int, int], batch_norm: bool = True, div_flow: int = 20) -> None:
           self._image = image
