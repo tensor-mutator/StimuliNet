@@ -71,7 +71,7 @@ class FlowNetSD(Network):
           deconv2 = Mutator.Deconv(filters=64, name='deconv2')(fuse3)
           fuse2 = tf.concat([Mutator.get_operation(self._names.get('conv2_1')), deconv2, flow3_up], axis=1, name='fuse2')
           interconv2 = Mutator.Conv2DInter(filters=64, kernel_size=(3, 3), batch_norm=self._batch_norm, name='interconv2')(fuse2)
-          self._flow2 = Mutator.PredictFlow(name='flow2')(interconv2)
+          flow2 = Mutator.PredictFlow(name='flow2')(interconv2)
 
       @property
       def inputs(self) -> Sequence[tf.Tensor]:
@@ -79,7 +79,7 @@ class FlowNetSD(Network):
 
       @property
       def outputs(self) -> Sequence[tf.Tensor]:
-          return [self._flow2]
+          return [Mutator.get_operation(self._names.get('flow2'))]
 
       def get_graph(self, dest: str = os.getcwd()) -> None:
           writer = tf.summary.FileWriter(dest, graph=self.graph)
