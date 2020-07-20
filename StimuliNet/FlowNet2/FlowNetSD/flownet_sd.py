@@ -88,3 +88,6 @@ class FlowNetSD(Network):
       def get_graph(self, dest: str = os.getcwd()) -> None:
           writer = tf.summary.FileWriter(dest, graph=self.graph)
           writer.close()
+
+      def loss(self, flow: tf.Tensor, predictions: tf.Tensor) -> tf.Tensor:
+          pass
