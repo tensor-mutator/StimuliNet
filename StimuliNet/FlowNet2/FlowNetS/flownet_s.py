@@ -15,7 +15,7 @@ class FlowNetS(object):
 
       def __init__(self, patch: Tuple[int, int, int], batch_norm: bool = True) -> None: 
           self._batch_norm = batch_norm
-          self._input = tf.placeholder(dtype=tf.float32, shape=(None,) + patch, name='patch')
+          self._input = tf.placeholder(dtype=tf.float32, shape=(None,) + patch, name='input_s')
           self._scope = 'FlowNetS'
           self._build_graph_with_scope()
 
