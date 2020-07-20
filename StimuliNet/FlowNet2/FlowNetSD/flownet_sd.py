@@ -79,7 +79,7 @@ class FlowNetSD(Network):
 
       @property
       def outputs(self) -> Sequence[tf.Tensor]:
-          return self._flow2
+          return [self._flow2]
 
       def get_graph(self, dest: str = os.getcwd()) -> None:
           writer = tf.summary.FileWriter(dest, graph=self.graph)
