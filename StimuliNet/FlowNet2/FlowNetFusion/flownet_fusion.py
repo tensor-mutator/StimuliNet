@@ -14,7 +14,7 @@ import os
 
 class FlowNetFusion(Network):
 
-      def __init__(self, patch: tf.TensorShape, batch_norm: bool = True, trainable : bool = True) -> None:
+      def __init__(self, patch: tf.TensorShape, batch_norm: bool = True, trainable: bool = True) -> None:
           self._batch_norm = batch_norm
           self._patch = patch
           self._trainable = trainable
