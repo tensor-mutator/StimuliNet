@@ -1,7 +1,7 @@
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 import tensorflow.compat.v1 as tf
 
-class Network(ABC):
+class Network(metaclass=ABCMeta):
 
       @abstractmethod
       def _build_graph(self) -> None:
