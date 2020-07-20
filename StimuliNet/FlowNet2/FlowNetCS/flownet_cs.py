@@ -11,6 +11,7 @@ from FlowNet2.mutator import Mutator
 from FlowNet2.flow_warp import FlowWarp
 from typing import Tuple, Sequence
 import tensorflow.compat.v1 as tf
+import os
 
 class FlowNetCS(Network):
 
