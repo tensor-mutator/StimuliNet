@@ -10,9 +10,10 @@ import tensorflow.compat.v1.keras.layers as layers
 from typing import Tuple, Callable
 from FlowNet2.correlation_package.correlation import Correlation
 from FlowNet2.mutator import Mutator
+from FlowNet.network import Network
 import os
 
-class FlowNetC(object):
+class FlowNetC(Network):
 
       def __init__(self, image: Tuple[int, int, int], batch_norm: bool = True, div_flow: int = 20) -> None:
           self._image_1 = tf.placeholder(shape=(None,) + image, dtype=tf.float32, name='image_1_c')
