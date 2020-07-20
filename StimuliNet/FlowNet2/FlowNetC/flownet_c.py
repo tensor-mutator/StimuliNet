@@ -7,7 +7,7 @@ A TensorFlow implementation of FlowNetCorr
 from __future__ import print_function, division, absolute_import
 import tensorflow.compat.v1 as tf
 import tensorflow.compat.v1.keras.layers as layers
-from typing import Tuple, Callable
+from typing import Tuple, Callable, Sequence
 from FlowNet2.correlation_package.correlation import Correlation
 from FlowNet2.mutator import Mutator
 from FlowNet.network import Network
@@ -16,8 +16,7 @@ import os
 class FlowNetC(Network):
 
       def __init__(self, image: Tuple[int, int, int], batch_norm: bool = True, div_flow: int = 20) -> None:
-          self._image_1 = tf.placeholder(shape=(None,) + image, dtype=tf.float32, name='image_1_c')
-          self._image_2 = tf.placeholder(shape=(None,) + image, dtype=tf.float32, name='image_2_c')
+          self._image = image
           self._batch_norm = batch_norm
           self._div_flow = div_flow
           self._scope = 'FlowNetC'
@@ -40,6 +39,8 @@ class FlowNetC(Network):
 
       def _build_graph(self) -> None:
           Mutator.set_graph(self.graph)
+          self._image_1 = tf.placeholder(shape=(None,) + self._image, dtype=tf.float32, name='image_1_c')
+          self._image_2 = tf.placeholder(shape=(None,) + self._image, dtype=tf.float32, name='image_2_c')
           self._downsampling()
           self._upsampling()
 
@@ -75,7 +76,15 @@ class FlowNetC(Network):
           flow3_up = Mutator.Conv2DTranspose(filters=2, kernel_size=(4, 4), strides=(2, 2), padding=1, name='flow3_up')(flow3)
           deconv2 = Mutator.Deconv(filters=64, name='deconv2')(fuse3)
           fuse2 = tf.concat([Mutator.get_operation(self._names.get('conv2a')), deconv2, flow3_up], axis=1, name='fuse2')
-          flow2 = Mutator.PredictFlow(name='flow2')(fuse2)
+          self._flow2 = Mutator.PredictFlow(name='flow2')(fuse2)
+
+      @property
+      def inputs(self) -> Sequence[tf.Tensor]:
+          return [self._image_1, self._image_2]
+
+      @property
+      def outputs(self) -> Sequence[tf.Tensor]:
+          return [self._flow2]
 
       def get_graph(self, dest: str = os.getcwd()) -> None:
           writer = tf.summary.FileWriter(dest, graph=self.graph)
