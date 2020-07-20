@@ -37,6 +37,10 @@ class FlowNetC(Network):
                     self._build_graph()
           return self.graph
 
+      @property
+      def graph_def(self):
+          return self.graph.as_graph_def()
+
       def _build_graph(self) -> None:
           Mutator.set_graph(self.graph)
           self._image_1 = tf.placeholder(shape=(None,) + self._image, dtype=tf.float32, name='image_1_c')

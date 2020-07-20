@@ -35,6 +35,10 @@ class FlowNetSD(Network):
           self._downsampling()
           self._upsampling()
 
+      @property
+      def graph_def(self):
+          return self.graph.as_graph_def()
+
       def _downsampling(self) -> None:
           conv0 = Mutator.Conv2D(filters=64, kernel_size=(3, 3), batch_norm=self._batch_norm, name='conv0')(self._input)
           conv1 = Mutator.Conv2D(filters=64, kernel_size=(3, 3), strides=(2, 2), batch_norm=self._batch_norm, name='conv1')(conv0)

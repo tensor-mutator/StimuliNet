@@ -14,7 +14,7 @@ import os
 
 class FlowNetFusion(Network):
 
-      def __init__(self, patch: Tuple[int, int, int], batch_norm: bool = True) -> None:
+      def __init__(self, patch: tf.TensorShape, batch_norm: bool = True) -> None:
           self._batch_norm = batch_norm
           self._patch = patch
           self._scope = 'FlowNetFusion'
@@ -29,9 +29,13 @@ class FlowNetFusion(Network):
 
       def _build_graph(self) -> None:
           Mutator.set_graph(self.graph)
-          self._input = tf.placeholder(dtype=tf.float32, shape=(None,) + self._patch, name='fusion_input')
+          self._input = tf.placeholder(dtype=tf.float32, shape=self._patch, name='fusion_input')
           self._downsampling()
           self._upsampling()
+
+      @property
+      def graph_def(self):
+          return self.graph.as_graph_def()
 
       def _downsampling(self) -> None:
           conv0 = Mutator.Conv2D(filters=64, kernel_size=(3, 3), batch_norm=self._batch_norm, name='conv0')(self._input)
