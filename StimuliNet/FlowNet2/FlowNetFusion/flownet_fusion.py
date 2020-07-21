@@ -36,7 +36,7 @@ class FlowNetFusion(Network):
           self._upsampling()
 
       @property
-      def graph_def(self):
+      def graph_def(self) -> tf.GraphDef:
           return self.graph.as_graph_def()
 
       def _downsampling(self) -> None:
