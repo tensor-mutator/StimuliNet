@@ -40,11 +40,11 @@ class FlowNet2(Network):
           flownet_css = FlowNetCSS(self._image, self._batch_norm, self._div_flow, trainable=False)
           flownet_sd = FlowNetSD(self._image, self._batch_norm, trainable=False)
           flownet_css_patch = tf.import_graph_def(flownet_css.graph_def,
-                                                input_map={x.name: [self._image_1, self._image_2][i] for i, x in enumerate(flownet_css.inputs)},
-                                                return_elements=list(map(lambda x: x.name, flownet_css.outputs)))
+                                                  input_map={x.name: [self._image_1, self._image_2][i] for i, x in enumerate(flownet_css.inputs)},
+                                                  return_elements=list(map(lambda x: x.name, flownet_css.outputs)))
           flownet_sd_patch = tf.import_graph_def(flownet_sd.graph_def,
-                                                input_map={x.name: [self._image_1, self._image_2][i] for i, x in enumerate(flownet_sd.inputs)},
-                                                return_elements=list(map(lambda x: x.name, flownet_sd.outputs)))
+                                                 input_map={x.name: [self._image_1, self._image_2][i] for i, x in enumerate(flownet_sd.inputs)},
+                                                 return_elements=list(map(lambda x: x.name, flownet_sd.outputs)))
           flownet_fusion_input_tensor = self._compute_input_tensor_for_flownet_fusion(self._image_1, self._image_2, flownet_css_patch, flownet_sd_patch)
           flownet_fusion = FlowNetFusion(flownet_fusion_input_tensor.get_shape(), self._batch_norm)
           self._flownet_2_patch = tf.import_graph_def(flownet_fusion.graph_def,
