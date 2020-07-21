@@ -18,7 +18,7 @@ class FlowNetSD(Network):
           self._batch_norm = batch_norm
           self._image = image
           self._trainable = trainable
-          self._scope = 'FlowNetS'
+          self._scope = 'FlowNetSD'
           self._build_graph_with_scope()
 
       def _build_graph_with_scope(self) -> tf.Graph:
