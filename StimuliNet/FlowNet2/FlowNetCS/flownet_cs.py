@@ -57,7 +57,7 @@ class FlowNetCS(Network):
           return [self._image_1, self._image_2]
 
       @property
-      def outputs(self) -> equence[tf.Tensor]:
+      def outputs(self) -> Sequence[tf.Tensor]:
           return [self._flownet_cs_patch]
 
       def get_graph(self, dest: str = os.getcwd()) -> None:
