@@ -11,10 +11,6 @@ from typing import Sequence
 
 class Network(metaclass=ABCMeta):
 
-      @abstractmethod
-      def _build_graph(self) -> None:
-          ...
-
       @property
       @abstractmethod
       def graph_def(self) -> tf.GraphDef:
