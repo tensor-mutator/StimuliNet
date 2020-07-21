@@ -44,8 +44,8 @@ class FlowNetCS(Network):
           flownet_s_input_tensor = self._compute_input_tensor_for_flownet_s(self._image_1, self._image_2, flownet_c_patch)
           flownet_s = FlowNetS(flownet_s_input_tensor.get_shape(), self._batch_norm, trainable=self._trainable)
           self._flownet_cs_patch = tf.import_graph_def(flownet_s.graph_def,
-                              input_map={flownet_s.inputs[0].name: flownet_s_input_tensor},
-                              return_elements=list(map(lambda x: x.name, flownet_s.outputs)))
+                                                       input_map={flownet_s.inputs[0].name: flownet_s_input_tensor},
+                                                       return_elements=list(map(lambda x: x.name, flownet_s.outputs)))
 
       def _compute_input_tensor_for_flownet_s(self, image_1: tf.Tensor, image_2: tf.Tensor, flow_out: tf.Tensor) -> tf.Tensor:
           warped = FlowWarp(image_2, flow_out)
