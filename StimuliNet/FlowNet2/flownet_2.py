@@ -6,7 +6,7 @@ A TensorFlow implementation of FlowNet2.0
 
 from FlowNet2.network import Network
 from FlowNet2.FlowNetCSS import FlowNetCSS
-from FlowNet.FlowNetSD import FlowNetSD
+from FlowNet2.FlowNetSD import FlowNetSD
 from FlowNet2.FlowNetFusion import FlowNetFusion
 from FlowNet2.mutator import Mutator
 from FlowNet2.flow_warp import FlowWarp
