@@ -11,7 +11,7 @@ from inspect import stack
 
 class Mutator(object):
 
-      trainable = True
+      trainable: bool = True
 
       @classmethod
       def set_graph(cls, graph: tf.Graph) -> None:
