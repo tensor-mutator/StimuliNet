@@ -15,10 +15,17 @@ class Network(metaclass=ABCMeta):
       def _build_graph(self) -> None:
           ...
 
+      @property
+      @abstractmethod
+      def graph_def(self) -> tf.GraphDef:
+          ...
+      
+      @property
       @abstractmethod
       def inputs(self) -> Sequence[tf.Tensor]:
           ...
 
+      @property
       @abstractmethod
       def outputs(self) -> Sequence[tf.Tensor]:
           ...
