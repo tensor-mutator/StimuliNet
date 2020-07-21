@@ -6,7 +6,7 @@ A TensorFlow implementation of FlowNetCS
 
 from FlowNet2.network import Network
 from FlowNet2.FlowNetC import FlowNetC
-from FlowNet.FlowNetS import FlowNetS
+from FlowNet2.FlowNetS import FlowNetS
 from FlowNet2.mutator import Mutator
 from FlowNet2.flow_warp import FlowWarp
 from typing import Tuple, Sequence
