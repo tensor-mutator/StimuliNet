@@ -30,7 +30,7 @@ class FlowNetCSS(Network):
           return self.graph
 
       @property
-      def graph_def(self):
+      def graph_def(self) -> tf.GraphDef:
           return self.graph.as_graph_def()
 
       def _build_graph(self) -> None:
