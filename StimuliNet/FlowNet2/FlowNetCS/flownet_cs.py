@@ -15,7 +15,7 @@ import os
 
 class FlowNetCS(Network):
 
-      def __init__(self, image: Tuple[int, int, int], batch_norm: bool = True, div_flow: int = 20, trainable: bool = True) -> None:
+      def __init__(self, image: Tuple[int, int, int], batch_norm: bool = True, trainable: bool = True) -> None:
           self._image = image
           self._batch_norm = batch_norm
           self._div_flow = div_flow
@@ -39,7 +39,7 @@ class FlowNetCS(Network):
           Mutator.set_graph(self.graph)
           self._image_1 = tf.placeholder(shape=(None,) + image, dtype=tf.float32, name='image_1_cs')
           self._image_2 = tf.placeholder(shape=(None,) + image, dtype=tf.float32, name='image_2_cs')
-          flownet_c = FlowNetC(self._image, self._batch_norm, self._div_flow, trainable=False)
+          flownet_c = FlowNetC(self._image, self._batch_norm, trainable=False)
           flownet_c_patch = tf.import_graph_def(flownet_c.graph_def,
                                                 input_map={x.name: [self._image_1, self._image_2][i] for i, x in enumerate(flownet_c.inputs)},
                                                 return_elements=list(map(lambda x: x.name, flownet_c.outputs)))
