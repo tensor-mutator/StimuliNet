@@ -4,6 +4,7 @@
 A TensorFlow implementation of FlowNet2.0
 """
 
+from __future__ import print_function, division, absolute_import
 from FlowNet2.network import Network
 from FlowNet2.FlowNetCSS import FlowNetCSS
 from FlowNet2.FlowNetSD import FlowNetSD
