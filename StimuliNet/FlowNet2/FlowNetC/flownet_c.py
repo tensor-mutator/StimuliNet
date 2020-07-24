@@ -12,6 +12,7 @@ from FlowNet2.correlation_package.correlation import Correlation
 from FlowNet2.mutator import Mutator
 from FlowNet2.network import Network
 from FlowNet2.downsample import Downsample
+import numpy as np
 import os
 
 class FlowNetC(Network):
@@ -97,7 +98,8 @@ class FlowNetC(Network):
           writer = tf.summary.FileWriter(dest, graph=self.graph)
           writer.close()
 
-      def loss(self, flow: tf.Tensor, predictions: tf.Tensor) -> tf.Tensor:
+      def loss(self, flow: np.ndarray, predictions: tf.Tensor) -> tf.Tensor:
+          flow = tf.convert_to_tensor(flow, dtype=tf.float32)
           flow = flow * 0.05
           losses = list()
           flow6 = Mutator.get_operation(self._names.get('flow6'))
