@@ -27,8 +27,9 @@ class FlowNetS(Network):
           with self.graph.as_default():
                with tf.variable_scope(self._scope):
                     self._build_graph()
-                    loss_input_output = self._build_loss_ops()
-                    self.loss = type('loss', (object,), loss_input_output)
+                    if self._trainable:
+                       loss_input_output = self._build_loss_ops()
+                       self.loss = type('loss', (object,), loss_input_output)
           return self.graph
 
       def _build_graph(self) -> None:
