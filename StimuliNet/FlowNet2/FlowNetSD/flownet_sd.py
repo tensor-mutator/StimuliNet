@@ -19,6 +19,7 @@ class FlowNetSD(Network):
           self._batch_norm = batch_norm
           self._image = image
           self._trainable = trainable
+          self.flow_scale = 20
           self._scope = 'FlowNetSD'
           self._build_graph_with_scope()
 
@@ -97,7 +98,7 @@ class FlowNetSD(Network):
 
       def _build_loss_ops(self) -> tf.Tensor:
           flow = tf.placeholder(dtype=tf.float32, shape=(None,) + self._image)
-          flow = flow * 20
+          flow = flow * self.flow_scale
           losses = list()
           flow6 = Mutator.get_operation(self._names.get('flow6'))
           flow6_labels = Downsample(flow, [flow6.shape[1], flow6.shape[2]])
