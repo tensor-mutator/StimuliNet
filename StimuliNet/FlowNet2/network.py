@@ -29,7 +29,3 @@ class Network(metaclass=ABCMeta):
       @abstractmethod
       def get_graph(self, dest: str) -> None:
           ...
-
-      @abstractmethod
-      def loss(self, flow: tf.Tensor, predictions: tf.Tensor) -> tf.Tensor:
-          ...
