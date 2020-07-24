@@ -17,10 +17,9 @@ import os
 
 class FlowNet2(Network):
 
-      def __init__(self, image: Tuple[int, int, int], batch_norm: bool = True, div_flow: int = 20) -> None:
+      def __init__(self, image: Tuple[int, int, int], batch_norm: bool = True) -> None:
           self._image = image
           self._batch_norm = batch_norm
-          self._div_flow = div_flow
           self._scope = 'FlowNet2.0'
 
       def _build_graph_with_scope(self) -> tf.Graph:
@@ -40,7 +39,7 @@ class FlowNet2(Network):
           Mutator.set_graph(self.graph)
           self._image_1 = tf.placeholder(shape=(None,) + image, dtype=tf.float32, name='image_1_2')
           self._image_2 = tf.placeholder(shape=(None,) + image, dtype=tf.float32, name='image_2_2')
-          flownet_css = FlowNetCSS(self._image, self._batch_norm, self._div_flow, trainable=False)
+          flownet_css = FlowNetCSS(self._image, self._batch_norm, trainable=False)
           flownet_sd = FlowNetSD(self._image, self._batch_norm, trainable=False)
           flownet_css_patch = tf.import_graph_def(flownet_css.graph_def,
                                                   input_map={x.name: [self._image_1, self._image_2][i] for i, x in enumerate(flownet_css.inputs)},
