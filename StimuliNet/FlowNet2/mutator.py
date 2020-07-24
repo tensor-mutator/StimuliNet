@@ -110,3 +110,8 @@ class Mutator(object):
           if scope:
              return Mutator.graph.get_operation_by_name(f'{scope}/{name}').outputs[0]
           return Mutator.graph.get_operation_by_name(f'{name}').outputs[0]
+
+      @staticmethod
+      def average_endpoint_error(labels: tf.Tensor, predictions: tf.Tensor) -> tf.Tensor:
+          endpoint_error = tf.sqrt(tf.reduce_sum(tf.square(predictions - labels), axis=-1, keep_dims=True))
+          return tf.reduce_mean(tf.reduce_sum(endpoint_error, axis=[1,2,3]))
