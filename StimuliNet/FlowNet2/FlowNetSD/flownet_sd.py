@@ -26,6 +26,9 @@ class FlowNetSD(Network):
           with self.graph.as_default():
                with tf.variable_scope(self._scope):
                     self._build_graph()
+                    if self._trainable:
+                       loss_input_output = self._build_loss_ops()
+                       self.loss = type('loss', (object,), loss_input_output)
           return self.graph
 
       def _build_graph(self) -> None:
@@ -91,5 +94,24 @@ class FlowNetSD(Network):
           writer = tf.summary.FileWriter(dest, graph=self.graph)
           writer.close()
 
-      def loss(self, flow: tf.Tensor, predictions: tf.Tensor) -> tf.Tensor:
-          pass
+      def _build_loss_ops(self) -> tf.Tensor:
+          flow = tf.placeholder(dtype=tf.float32, shape=(None,) + self._image)
+          flow = flow * 20
+          losses = list()
+          flow6 = Mutator.get_operation(self._names.get('flow6'))
+          flow6_labels = Downsample(flow, [flow6.shape[1], flow6.shape[2]])
+          losses.append(Mutator.average_endpoint_error(flow6_labels, flow6))
+          flow5 = Mutator.get_operation(self._names.get('flow5'))
+          flow5_labels = Downsample(flow, [flow5.shape[1], flow5.shape[2]])
+          losses.append(Mutator.average_endpoint_error(flow5_labels, flow5))
+          flow4 = Mutator.get_operation(self._names.get('flow4'))
+          flow4_labels = Downsample(flow, [flow4.shape[1], flow4.shape[2]])
+          losses.append(Mutator.average_endpoint_error(flow4_labels, flow4))
+          flow3 = Mutator.get_operation(self._names.get('flow3'))
+          flow3_labels = Downsample(flow, [flow3.shape[1], flow3.shape[2]])
+          losses.append(Mutator.average_endpoint_error(flow3_labels, flow3))
+          flow2 = Mutator.get_operation(self._names.get('flow2'))
+          flow2_labels = Downsample(flow, [flow2.shape[1], flow2.shape[2]])
+          losses.append(Mutator.average_endpoint_error(flow2_labels, flow2))
+          loss = tf.losses.compute_weighted_loss(losses, [0.32, 0.08, 0.02, 0.01, 0.005])
+          return dict(input=flow, output=tf.losses.get_total_loss())
