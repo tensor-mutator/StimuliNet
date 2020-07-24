@@ -10,7 +10,7 @@ import tensorflow.compat.v1.keras.layers as layers
 from typing import Tuple, Sequence
 from FlowNet2.mutator import Mutator
 from FlowNet2.network import Network
-import numpy as np
+from FlowNet2.downsample import Downsample
 import os
 
 class FlowNetS(Network):
