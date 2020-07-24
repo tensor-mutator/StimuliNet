@@ -4,6 +4,7 @@
 A Mutator module for customized operations
 """
 
+from __future__ import print_function, division, absolute_import
 from typing import Callable, Tuple
 import tensorflow.compat.v1 as tf
 import tensorflow.compat.v1.keras.layers as layers
