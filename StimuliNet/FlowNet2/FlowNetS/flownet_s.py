@@ -10,6 +10,7 @@ import tensorflow.compat.v1.keras.layers as layers
 from typing import Tuple, Sequence
 from FlowNet2.mutator import Mutator
 from FlowNet2.network import Network
+import numpy as np
 import os
 
 class FlowNetS(Network):
@@ -82,5 +83,24 @@ class FlowNetS(Network):
           writer = tf.summary.FileWriter(dest, graph=self.graph)
           writer.close()
 
-      def loss(self, flow: tf.Tensor, predictions: tf.Tensor) -> tf.Tensor:
-          pass
+      def loss(self, flow: np.ndarray, predictions: tf.Tensor) -> tf.Tensor:
+          flow = tf.convert_to_tensor(flow, dtype=tf.float32)
+          flow = flow * 0.05
+          losses = list()
+          flow6 = Mutator.get_operation(self._names.get('flow6'))
+          flow6_labels = Downsample(flow, [flow6.shape[1], flow6.shape[2]])
+          losses.append(Mutator.average_endpoint_error(flow6_labels, flow6))
+          flow5 = Mutator.get_operation(self._names.get('flow5'))
+          flow5_labels = Downsample(flow, [flow5.shape[1], flow5.shape[2]])
+          losses.append(Mutator.average_endpoint_error(flow5_labels, flow5))
+          flow4 = Mutator.get_operation(self._names.get('flow4'))
+          flow4_labels = Downsample(flow, [flow4.shape[1], flow4.shape[2]])
+          losses.append(Mutator.average_endpoint_error(flow4_labels, flow4))
+          flow3 = Mutator.get_operation(self._names.get('flow3'))
+          flow3_labels = Downsample(flow, [flow3.shape[1], flow3.shape[2]])
+          losses.append(Mutator.average_endpoint_error(flow3_labels, flow3))
+          flow2 = Mutator.get_operation(self._names.get('flow2'))
+          flow2_labels = Downsample(flow, [flow2.shape[1], flow2.shape[2]])
+          losses.append(Mutator.average_endpoint_error(flow2_labels, flow2))
+          loss = tf.losses.compute_weighted_loss(losses, [0.32, 0.08, 0.02, 0.01, 0.005])
+          return tf.losses.get_total_loss()
