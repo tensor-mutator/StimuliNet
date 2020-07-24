@@ -27,6 +27,8 @@ class FlowNetCS(Network):
           with self.graph.as_default():
                with tf.variable_scope(self._scope):
                     self._build_graph()
+                    if self._trainable:
+                       self.loss = type('loss', (object,), dict(input=self._flow_label, output=self._loss))
           return self.graph
 
       @property
@@ -43,9 +45,17 @@ class FlowNetCS(Network):
                                                 return_elements=list(map(lambda x: x.name, flownet_c.outputs)))
           flownet_s_input_tensor = self._compute_input_tensor_for_flownet_s(self._image_1, self._image_2, flownet_c_patch)
           flownet_s = FlowNetS(flownet_s_input_tensor.get_shape(), self._batch_norm, trainable=self._trainable)
-          self._flownet_cs_patch = tf.import_graph_def(flownet_s.graph_def,
-                                                       input_map={flownet_s.inputs[0].name: flownet_s_input_tensor},
-                                                       return_elements=list(map(lambda x: x.name, flownet_s.outputs)))
+          if self._trainable:
+             self._flownet_s_loss = flownet_s.loss
+             self._flow_label = tf.placeholder(dtype=tf.float32, shape=(None,) + self._image)
+             self._flownet_cs_patch, self._loss = tf.import_graph_def(flownet_s.graph_def,
+                                                          input_map={flownet_s.inputs[0].name: flownet_s_input_tensor,
+                                                                     self._flownet_s_loss.input: self._flow_label},
+                                                          return_elements=list(map(lambda x: x.name, flownet_s.outputs)) + [self._flownet_s_loss.output])
+          else:
+             self._flownet_cs_patch = tf.import_graph_def(flownet_s.graph_def,
+                                                          input_map={flownet_s.inputs[0].name: flownet_s_input_tensor},
+                                                          return_elements=list(map(lambda x: x.name, flownet_s.outputs)))
 
       def _compute_input_tensor_for_flownet_s(self, image_1: tf.Tensor, image_2: tf.Tensor, flow_out: tf.Tensor) -> tf.Tensor:
           warped = FlowWarp(image_2, flow_out)
@@ -63,6 +73,3 @@ class FlowNetCS(Network):
       def get_graph(self, dest: str = os.getcwd()) -> None:
           writer = tf.summary.FileWriter(dest, graph=self.graph)
           writer.close()
-
-      def loss(self, flow: tf.Tensor, predictions: tf.Tensor) -> tf.Tensor:
-          pass
