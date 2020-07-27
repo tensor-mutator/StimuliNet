@@ -15,7 +15,7 @@ LFLAGS    = -pthread -shared -fPIC
 GPULFLAGS = -x cu -Xcompiler -fPIC
 CGPUFLAGS = -L$(CUDA_HOME)/lib -L$(CUDA_HOME)/lib64 -lcudart
 
-OUT_DIR   = src/ops/build
+OUT_DIR   = FlowNet2/ops/build
 PREPROCESSING_SRC = "FlowNet2/ops/preprocessing/preprocessing.cc" "FlowNet2/ops/preprocessing/kernels/flow_augmentation.cc" "FlowNet2/ops/preprocessing/kernels/augmentation_base.cc" "FlowNet2/ops/preprocessing/kernels/data_augmentation.cc"
 GPU_SRC_DATA_AUG  	= FlowNet2/ops/preprocessing/kernels/data_augmentation.cu.cc
 GPU_SRC_FLOW     	= FlowNet2/ops/preprocessing/kernels/flow_augmentation_gpu.cu.cc
