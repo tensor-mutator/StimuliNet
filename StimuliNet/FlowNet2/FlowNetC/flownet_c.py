@@ -8,7 +8,7 @@ from __future__ import print_function, division, absolute_import
 import tensorflow.compat.v1 as tf
 import tensorflow.compat.v1.keras.layers as layers
 from typing import Tuple, Callable, Sequence
-from FlowNet2.correlation_package.correlation import Correlation
+from FlowNet2.correlation import Correlation
 from FlowNet2.mutator import Mutator
 from FlowNet2.network import Network
 from FlowNet2.downsample import Downsample
