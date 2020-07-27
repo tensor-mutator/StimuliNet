@@ -9,4 +9,5 @@ from .FlowNetFusion.flownet_fusion import FlowNetFusion
 from .FlowNetSD.flownet_sd import FlowNetSD
 from .flow_warp import FlowWarp
 from .downsample import Downsample
+from .correlation import Correlation
 from .flowkit import *
