@@ -135,7 +135,7 @@ def flow_to_image(flow):
     print "max flow: %.4f\nflow range:\nu = %.3f .. %.3f\nv = %.3f .. %.3f" % (maxrad, minu,maxu, minv, maxv)
     u = u/(maxrad + np.finfo(float).eps)
     v = v/(maxrad + np.finfo(float).eps)
-    img = compute_flow_color(u, v)
+    img = motion_to_color(u, v)
     idx = np.repeat(idxUnknow[:, :, np.newaxis], 3, axis=2)
     img[idx] = 0
     return np.uint8(img)
@@ -203,7 +203,7 @@ def scale_image(image, new_range):
     scaled_image = (image - min_val) / (max_val - min_val) * (max_val_new - min_val_new) + min_val_new
     return scaled_image.astype(np.uint8)
 
-def compute_flow_color(x, y):
+def motion_to_color(x, y):
     [h, w] = x.shape
     img = np.zeros([h, w, 3])
     nanIdx = np.isnan(x) | np.isnan(y)
