@@ -204,12 +204,13 @@ def scale_image(image, new_range):
     return scaled_image.astype(np.uint8)
 
 def motion_to_color(x, y):
+    palette = color_palette()
     [h, w] = x.shape
     img = np.zeros([h, w, 3])
     nanIdx = np.isnan(x) | np.isnan(y)
     x[nanIdx] = 0
     y[nanIdx] = 0
-    ncols = np.size(color_palette, 0)
+    ncols = np.size(palette, 0)
     rad = np.sqrt(x**2+y**2)
     a = np.arctan2(-y, -x) / np.pi
     fk = (a+1) / 2 * (ncols - 1) + 1
@@ -217,8 +218,8 @@ def motion_to_color(x, y):
     k1 = k0 + 1
     k1[k1 == ncols+1] = 1
     f = fk - k0
-    for i in range(0, np.size(color_palette,1)):
-        tmp = color_palette[:, i]
+    for i in range(0, np.size(palette,1)):
+        tmp = palette[:, i]
         col0 = tmp[k0-1] / 255
         col1 = tmp[k1-1] / 255
         col = (1-f) * col0 + f * col1
@@ -229,7 +230,6 @@ def motion_to_color(x, y):
         img[:, :, i] = np.uint8(np.floor(255 * col*(1-nanIdx)))
     return img
 
-@property
 def color_palette():
     RY = 15
     YG = 6
