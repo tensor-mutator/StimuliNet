@@ -9,7 +9,10 @@ from FlowNet2.network import Network
 from FlowNet2.FlowNetC import FlowNetC
 from FlowNet2.FlowNetS import FlowNetS
 from FlowNet2.mutator import Mutator
-from FlowNet2.flow_warp import FlowWarp
+import warnings
+with warnings.catch_warnings():  
+     warnings.filterwarnings("ignore", category=FutureWarning)
+     import tensorflow_addons.image import dense_image_warp
 from typing import Tuple, Sequence
 import tensorflow.compat.v1 as tf
 import os
@@ -58,7 +61,7 @@ class FlowNetCS(Network):
                                                           return_elements=list(map(lambda x: x.name, flownet_s.outputs)))
 
       def _compute_input_tensor_for_flownet_s(self, image_1: tf.Tensor, image_2: tf.Tensor, flow_out: tf.Tensor) -> tf.Tensor:
-          warped = FlowWarp(image_2, flow_out)
+          warped = dense_image_warp(image_2, flow_out)
           brightness_error = Mutator.ChannelNorm()(image_1 - warped)
           return tf.concat([image_1, image_2, warped, flow_out * 0.05, brightness_error], axis=-1)
 
