@@ -5,13 +5,15 @@ A TensorFlow implementation of FlowNetCorr
 """
 
 from __future__ import print_function, division, absolute_import
-import tensorflow.compat.v1 as tf
-import tensorflow.compat.v1.keras.layers as layers
+import warnings
+with warnings.catch_warnings():  
+     warnings.filterwarnings("ignore", category=FutureWarning)
+     import tensorflow.compat.v1 as tf
+     import tensorflow.compat.v1.keras.layers as layers
+     from tensorflow_addons.layers import CorrelationCost
 from typing import Tuple, Callable, Sequence
-from FlowNet2.correlation import Correlation
 from FlowNet2.mutator import Mutator
 from FlowNet2.network import Network
-from FlowNet2.downsample import Downsample
 import numpy as np
 import os
 
@@ -58,7 +60,7 @@ class FlowNetC(Network):
       def _downsampling(self) -> None:
           stream1_tensor_out = self._fusion_stream('a')(self._image_1)
           stream2_tensor_out = self._fusion_stream('b')(self._image_2)
-          corr_out = Correlation(pad_size=20, kernel_size=1, max_displacement=20, stride1=1, stride2=2, corr_multiply=1)(stream1_tensor_out, stream2_tensor_out)
+          corr_out = CorrelationCost(pad=20, kernel_size=1, max_displacement=20, stride_1=1, stride_2=2, corr_multiply=1)(stream1_tensor_out, stream2_tensor_out)
           corr_out = layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1), trainable=self._trainable, name='correlation')(corr_out)
           conv_redir_out = Mutator.Conv2D(filters=32, kernel_size=(1, 1), strides=(1, 1), batch_norm=self._batch_norm, name='conv_redir')(stream1_tensor_out)
           fused = tf.concat([conv_redir_out, corr_out], axis=1, name='fuse')
@@ -106,19 +108,19 @@ class FlowNetC(Network):
           flow = flow * self.flow_scale
           losses = list()
           flow6 = Mutator.get_operation(self._names.get('flow6'))
-          flow6_labels = Downsample(flow, [flow6.shape[1], flow6.shape[2]])
+          flow6_labels = tf.image.resize(flow, [flow6.shape[1], flow6.shape[2]])
           losses.append(Mutator.average_endpoint_error(flow6_labels, flow6))
           flow5 = Mutator.get_operation(self._names.get('flow5'))
-          flow5_labels = Downsample(flow, [flow5.shape[1], flow5.shape[2]])
+          flow5_labels = tf.image.resize(flow, [flow5.shape[1], flow5.shape[2]])
           losses.append(Mutator.average_endpoint_error(flow5_labels, flow5))
           flow4 = Mutator.get_operation(self._names.get('flow4'))
-          flow4_labels = Downsample(flow, [flow4.shape[1], flow4.shape[2]])
+          flow4_labels = tf.image.resize(flow, [flow4.shape[1], flow4.shape[2]])
           losses.append(Mutator.average_endpoint_error(flow4_labels, flow4))
           flow3 = Mutator.get_operation(self._names.get('flow3'))
-          flow3_labels = Downsample(flow, [flow3.shape[1], flow3.shape[2]])
+          flow3_labels = tf.image.resize(flow, [flow3.shape[1], flow3.shape[2]])
           losses.append(Mutator.average_endpoint_error(flow3_labels, flow3))
           flow2 = Mutator.get_operation(self._names.get('flow2'))
-          flow2_labels = Downsample(flow, [flow2.shape[1], flow2.shape[2]])
+          flow2_labels = tf.image.resize(flow, [flow2.shape[1], flow2.shape[2]])
           losses.append(Mutator.average_endpoint_error(flow2_labels, flow2))
           loss = tf.losses.compute_weighted_loss(losses, [0.32, 0.08, 0.02, 0.01, 0.005])
           return dict(input=flow, output=tf.losses.get_total_loss())
