@@ -83,8 +83,10 @@ class Mutator(object):
           if name:
              Mutator._set_name_to_instance(name, f'{name}/BiasAdd')
           def conv_2d_transpose(input_tensor: tf.Tensor) -> tf.Tensor:
-              tensor_out = layers.ZeroPadding2D(padding, trainable=Mutator.trainable)(input_tensor)
-              return layers.Conv2DTranspose(filters=filters, kernel_size=kernel_size, strides=strides, trainable=Mutator.trainable, name=name)(tensor_out)
+              #tensor_out = layers.ZeroPadding2D(padding, trainable=Mutator.trainable)(input_tensor)
+              tensor_out = layers.Conv2DTranspose(filters=filters, kernel_size=kernel_size, strides=strides, trainable=Mutator.trainable, name=name)(input_tensor)
+              batch, h, w, c = tensor_out.shape.as_list()
+              return tf.slice(tensor_out, begin=[0, padding, padding, 0], size=[batch, h - 2 * padding, w - 2 * padding, c])
           return conv_2d_transpose
 
       @staticmethod
@@ -102,8 +104,8 @@ class Mutator(object):
           if name:
              Mutator._set_name_to_instance(name, f'{name}/BiasAdd')
           def predict_flow(input_tensor: tf.Tensor) -> tf.Tensor:
-              tensor_out = layers.ZeroPadding2D(1, trainable=Mutator.trainable)(input_tensor)
-              return layers.Conv2D(filters=2, kernel_size=(3, 3), trainable=Mutator.trainable, name=name)(tensor_out)
+              #tensor_out = layers.ZeroPadding2D(1, trainable=Mutator.trainable)(input_tensor)
+              return layers.Conv2D(filters=2, kernel_size=(3, 3), trainable=Mutator.trainable, name=name)(input_tensor)
           return predict_flow
 
       @staticmethod
