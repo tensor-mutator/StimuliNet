@@ -5,13 +5,13 @@ A TensorFlow implementation of FlowNetCSS
 """
 
 from __future__ import print_function, division, absolute_import
-from FlowNet2.network import Network
-from FlowNet2.FlowNetC import FlowNetCS
-from FlowNet2.FlowNetS import FlowNetS
-from FlowNet2.mutator import Mutator
+from ..network import Network
+from ..FlowNetC import FlowNetCS
+from ..FlowNetS import FlowNetS
+from ..mutator import Mutator
 from typing import Tuple, Sequence
 import tensorflow.compat.v1 as tf
-import tensorflow_addons.image import dense_image_warp
+from tensorflow_addons.image import dense_image_warp
 import os
 
 class FlowNetCSS(Network):
