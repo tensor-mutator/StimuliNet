@@ -9,10 +9,10 @@ import tensorflow.compat.v1 as tf
 import tensorflow.compat.v1.keras.layers as layers
 from tensorflow_addons.layers import CorrelationCost
 from typing import Tuple, Callable, Sequence
-from FlowNet2.mutator import Mutator
-from FlowNet2.network import Network
 import numpy as np
 import os
+from ..mutator import Mutator
+from ..network import Network
 
 class FlowNetC(Network):
 
