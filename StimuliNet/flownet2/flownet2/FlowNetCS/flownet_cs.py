@@ -38,8 +38,8 @@ class FlowNetCS(Network):
 
       def _build_graph(self) -> None:
           Mutator.set_graph(self.graph)
-          self._image_1 = tf.placeholder(shape=(None,) + image, dtype=tf.float32, name='image_1_cs')
-          self._image_2 = tf.placeholder(shape=(None,) + image, dtype=tf.float32, name='image_2_cs')
+          self._image_1 = tf.placeholder(shape=(None,) + self._image, dtype=tf.float32, name='image_1_cs')
+          self._image_2 = tf.placeholder(shape=(None,) + self._image, dtype=tf.float32, name='image_2_cs')
           flownet_c = FlowNetC(self._image, self._batch_norm, trainable=False)
           flownet_c_patch = tf.import_graph_def(flownet_c.graph_def,
                                                 input_map={x.name: [self._image_1, self._image_2][i] for i, x in enumerate(flownet_c.inputs)},
