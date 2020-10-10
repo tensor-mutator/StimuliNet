@@ -5,7 +5,7 @@ A TensorFlow implementation of FlowNetCS
 """
 
 from __future__ import print_function, division, absolute_import
-import tensorflow_addons.image import dense_image_warp
+from tensorflow_addons.image import dense_image_warp
 from typing import Tuple, Sequence
 import tensorflow.compat.v1 as tf
 import os
