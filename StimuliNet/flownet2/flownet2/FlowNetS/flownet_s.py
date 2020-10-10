@@ -5,11 +5,8 @@ A TensorFlow implementation of FlowNetSimple
 """
 
 from __future__ import print_function, division, absolute_import
-import warnings
-with warnings.catch_warnings():  
-     warnings.filterwarnings("ignore", category=FutureWarning)
-     import tensorflow.compat.v1 as tf
-     import tensorflow.compat.v1.keras.layers as layers
+import tensorflow.compat.v1 as tf
+import tensorflow.compat.v1.keras.layers as layers
 from typing import Tuple, Sequence
 from FlowNet2.mutator import Mutator
 from FlowNet2.network import Network
