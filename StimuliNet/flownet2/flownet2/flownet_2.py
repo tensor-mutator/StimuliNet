@@ -14,6 +14,7 @@ from .flow_warp import FlowWarp
 from .downsample import Downsample
 from typing import Tuple, Sequence
 import tensorflow.compat.v1 as tf
+from tensorflow_addons.image import dense_image_warp
 import os
 
 class FlowNet2(Network):
@@ -59,9 +60,9 @@ class FlowNet2(Network):
                                                    flow_out_css: tf.Tensor, flow_out_sd: tf.Tensor) -> tf.Tensor:
           flow_out_css_norm = Mutator.ChannelNorm()(flow_out_css)
           flow_out_sd_norm = Mutator.ChannelNorm()(flow_out_sd)
-          warped_sd = FlowWarp(image_2, flow_out_sd)
+          warped_sd = dense_image_warp(image_2, flow_out_sd)
           brightness_error_sd = Mutator.ChannelNorm()(image_1 - warped_sd)
-          warped_css = FlowWarp(image_2, flow_out_css)
+          warped_css = dense_image_warp(image_2, flow_out_css)
           brightness_error_css = Mutator.ChannelNorm()(image_1 - warped_css)
           return tf.concat([image_1, flow_out_sd, flow_out_css, flow_out_sd_norm, flow_out_css_norm, brightness_error_sd,
                             brightness_error_css], axis=-1)
