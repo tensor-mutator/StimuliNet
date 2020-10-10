@@ -57,7 +57,7 @@ class FlowNetC(Network):
       def _downsampling(self) -> None:
           stream1_tensor_out = self._fusion_stream('a')(self._image_1)
           stream2_tensor_out = self._fusion_stream('b')(self._image_2)
-          corr_out = CorrelationCost(pad=20, kernel_size=1, max_displacement=20, stride_1=1, stride_2=2, corr_multiply=1)(stream1_tensor_out, stream2_tensor_out)
+          corr_out = CorrelationCost(pad=20, kernel_size=1, max_displacement=20, stride_1=1, stride_2=2, data_format="channels_last")([stream1_tensor_out, stream2_tensor_out])
           corr_out = layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1), trainable=self._trainable, name='correlation')(corr_out)
           conv_redir_out = Mutator.Conv2D(filters=32, kernel_size=(1, 1), strides=(1, 1), batch_norm=self._batch_norm, name='conv_redir')(stream1_tensor_out)
           fused = tf.concat([conv_redir_out, corr_out], axis=1, name='fuse')
