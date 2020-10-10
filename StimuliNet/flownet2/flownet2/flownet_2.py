@@ -21,6 +21,7 @@ class FlowNet2(Network):
           self._image = image
           self._batch_norm = batch_norm
           self._scope = 'FlowNet2.0'
+          self._build_graph_with_scope()
 
       def _build_graph_with_scope(self) -> tf.Graph:
           self.graph = tf.Graph()
