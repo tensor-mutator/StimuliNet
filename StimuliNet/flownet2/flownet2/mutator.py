@@ -51,7 +51,7 @@ class Mutator(object):
           setattr(inst, '_names', names)
 
       @staticmethod
-      def Conv2D(filters: int, kernel_size: Tuple[int, int], strides: Tuple[int, int], batch_norm: bool = True, name: str = None) -> Callable:
+      def Conv2D(filters: int, kernel_size: Tuple[int, int], strides: Tuple[int, int]=(1, 1), batch_norm: bool = True, name: str = None) -> Callable:
           if name:
              Mutator._set_name_to_instance(name, f'{name}/LeakyRelu')
           def conv2d(input_tensor: tf.Tensor) -> tf.Tensor:
