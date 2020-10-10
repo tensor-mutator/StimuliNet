@@ -10,7 +10,7 @@ import tensorflow.compat.v1 as tf
 from tensorflow_addons.image import dense_image_warp
 import os
 from ..network import Network
-from ..FlowNetC import FlowNetCS
+from ..FlowNetCS import FlowNetCS
 from ..FlowNetS import FlowNetS
 from ..mutator import Mutator
 
