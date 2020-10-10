@@ -55,7 +55,7 @@ class Mutator(object):
           if name:
              Mutator._set_name_to_instance(name, f'{name}/LeakyRelu')
           def conv2d(input_tensor: tf.Tensor) -> tf.Tensor:
-              tensor_out = layers.ZeroPadding2D((kernel_size[0] - 1)//2, trainable=Mutator.trainable)(input_tensor)
+              tensor_out = tf.pad(input_tensor, [[0, 0], [1, 1], [1, 1], [0, 0]])
               tensor_out = layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, trainable=Mutator.trainable)(tensor_out)
               if batch_norm:
                  tensor_out = layers.BatchNormalization(trainable=Mutator.trainable)(tensor_out)
