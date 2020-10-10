@@ -7,7 +7,7 @@ authors = ["Debajyoti Raychaudhuri <draychaudhuri1086@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.6.8"
 tensorflow-gpu = "2.2.0"
-tensorflow-addons = "0.11.2"
+tensorflow-addons = "0.10.0"
 pypng = "^0.0.20"
 
 [tool.poetry.dev-dependencies]
