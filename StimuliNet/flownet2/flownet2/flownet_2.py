@@ -5,13 +5,13 @@ A TensorFlow implementation of FlowNet2.0
 """
 
 from __future__ import print_function, division, absolute_import
-from FlowNet2.network import Network
-from FlowNet2.FlowNetCSS import FlowNetCSS
-from FlowNet2.FlowNetSD import FlowNetSD
-from FlowNet2.FlowNetFusion import FlowNetFusion
-from FlowNet2.mutator import Mutator
-from FlowNet2.flow_warp import FlowWarp
-from FlowNet2.downsample import Downsample
+from .network import Network
+from .FlowNetCSS import FlowNetCSS
+from .FlowNetSD import FlowNetSD
+from .FlowNetFusion import FlowNetFusion
+from .mutator import Mutator
+from .flow_warp import FlowWarp
+from .downsample import Downsample
 from typing import Tuple, Sequence
 import tensorflow.compat.v1 as tf
 import os
