@@ -1,3 +1,10 @@
+import warnings
+with warnings.catch_warnings():  
+     warnings.filterwarnings("ignore", category=FutureWarning)
+     import tensorflow.compat.v1 as tf
+tf.logging.set_verbosity(tf.logging.WARN)
+tf.logging.set_verbosity(tf.logging.ERROR)
+tf.disable_eager_execution()
 from .mutator import Mutator
 from .network import Network
 from .flownet_2 import FlowNet2
