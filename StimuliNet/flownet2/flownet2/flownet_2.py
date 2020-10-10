@@ -38,8 +38,8 @@ class FlowNet2(Network):
 
       def _build_graph(self) -> None:
           Mutator.set_graph(self.graph)
-          self._image_1 = tf.placeholder(shape=(None,) + image, dtype=tf.float32, name='image_1_2')
-          self._image_2 = tf.placeholder(shape=(None,) + image, dtype=tf.float32, name='image_2_2')
+          self._image_1 = tf.placeholder(shape=(None,) + self._image, dtype=tf.float32, name='image_1_2')
+          self._image_2 = tf.placeholder(shape=(None,) + self._image, dtype=tf.float32, name='image_2_2')
           flownet_css = FlowNetCSS(self._image, self._batch_norm, trainable=False)
           flownet_sd = FlowNetSD(self._image, self._batch_norm, trainable=False)
           flownet_css_patch = tf.import_graph_def(flownet_css.graph_def,
