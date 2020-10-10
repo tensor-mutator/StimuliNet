@@ -85,7 +85,7 @@ class Mutator(object):
           def conv_2d_transpose(input_tensor: tf.Tensor) -> tf.Tensor:
               #tensor_out = layers.ZeroPadding2D(padding, trainable=Mutator.trainable)(input_tensor)
               tensor_out = layers.Conv2DTranspose(filters=filters, kernel_size=kernel_size, strides=strides, trainable=Mutator.trainable, name=name)(input_tensor)
-              batch, h, w, c = tensor_out.shape.as_list()
+              batch, h, w, c = tensor_out.get_shape()
               return tf.slice(tensor_out, begin=[0, padding, padding, 0], size=[batch, h - 2 * padding, w - 2 * padding, c])
           return conv_2d_transpose
 
