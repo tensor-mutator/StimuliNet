@@ -10,8 +10,6 @@ from .FlowNetCSS import FlowNetCSS
 from .FlowNetSD import FlowNetSD
 from .FlowNetFusion import FlowNetFusion
 from .mutator import Mutator
-from .flow_warp import FlowWarp
-from .downsample import Downsample
 from typing import Tuple, Sequence
 import tensorflow.compat.v1 as tf
 from tensorflow_addons.image import dense_image_warp
@@ -82,7 +80,7 @@ class FlowNet2(Network):
       def _build_loss_ops(self) -> tf.Tensor:
           flow = tf.placeholder(dtype=tf.float32, shape=(None,) + self._image)
           flow0 = Mutator.get_operation(self._flownet_fusion._names.get('flow0'))
-          flow0_labels = Downsample(flow, [flow0.shape[1], flow0.shape[2]])
+          flow0_labels = tf.image.resize(flow, [flow0.shape[1], flow0.shape[2]])
           loss = Mutator.average_endpoint_error(flow0_labels, flow0)
           tf.losses.add_loss(loss)
           return dict(input=flow, output=tf.losses.get_total_loss())
