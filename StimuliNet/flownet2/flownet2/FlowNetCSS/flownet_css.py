@@ -10,11 +10,8 @@ from FlowNet2.FlowNetC import FlowNetCS
 from FlowNet2.FlowNetS import FlowNetS
 from FlowNet2.mutator import Mutator
 from typing import Tuple, Sequence
-import warnings
-with warnings.catch_warnings():  
-     warnings.filterwarnings("ignore", category=FutureWarning)
-     import tensorflow.compat.v1 as tf
-     import tensorflow_addons.image import dense_image_warp
+import tensorflow.compat.v1 as tf
+import tensorflow_addons.image import dense_image_warp
 import os
 
 class FlowNetCSS(Network):
