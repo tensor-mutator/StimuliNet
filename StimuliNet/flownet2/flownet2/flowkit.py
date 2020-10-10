@@ -47,11 +47,11 @@ def read_flow(filename):
     magic = np.fromfile(f, np.float32, count=1)
     data2d = None
     if 202021.25 != magic:
-        print 'Magic number incorrect. Invalid .flo file'
+        print("Magic number incorrect. Invalid .flo file")
     else:
         w = np.fromfile(f, np.int32, count=1)
         h = np.fromfile(f, np.int32, count=1)
-        print "Reading %d x %d flo file" % (h, w)
+        print("Reading %d x %d flo file" % (h, w))
         data2d = np.fromfile(f, np.float32, count=2 * w * h)
         data2d = np.resize(data2d, (h[0], w[0], 2))
     f.close()
