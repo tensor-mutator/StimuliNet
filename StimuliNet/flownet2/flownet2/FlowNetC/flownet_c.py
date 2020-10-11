@@ -16,7 +16,7 @@ from ..network import Network
 
 class FlowNetC(Network):
 
-      def __init__(self, image: Tuple[int, int, int], flow: Tuple[int, int], batch_norm: bool = True, trainable: bool = True) -> None:
+      def __init__(self, image: Tuple[int, int], flow: Tuple[int, int], batch_norm: bool = True, trainable: bool = True) -> None:
           self._image = image
           self._flow = flow
           self._batch_norm = batch_norm
@@ -53,8 +53,8 @@ class FlowNetC(Network):
       def _build_graph(self) -> None:
           Mutator.set_graph(self.graph)
           Mutator.trainable = self._trainable
-          self._image_1 = tf.placeholder(shape=(None,) + self._image, dtype=tf.float32, name='image_1_c')
-          self._image_2 = tf.placeholder(shape=(None,) + self._image, dtype=tf.float32, name='image_2_c')
+          self._image_1 = tf.placeholder(shape=(None,) + self._image + (3,), dtype=tf.float32, name='image_1_c')
+          self._image_2 = tf.placeholder(shape=(None,) + self._image + (3,), dtype=tf.float32, name='image_2_c')
           self._downsampling()
           self._upsampling()
 
@@ -110,7 +110,7 @@ class FlowNetC(Network):
           writer.close()
 
       def _build_loss_ops(self, flow) -> tf.Tensor:
-          flow = tf.placeholder(dtype=tf.float32, shape=(None,) + flow)
+          flow = tf.placeholder(dtype=tf.float32, shape=(None,) + flow + (2,))
           flow = flow * self.flow_scale
           losses = list()
           flow6 = Mutator.get_operation(self._names.get('flow6'))
