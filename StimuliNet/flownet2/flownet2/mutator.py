@@ -20,7 +20,7 @@ class Mutator(object):
 
       @staticmethod
       def pad(tensor: tf.Tensor, padding: int = 1) -> tf.Tensor:
-          return tf.pad(input_tensor, [[0, 0], [padding, padding], [padding, padding], [0, 0]])          
+          return tf.pad(tensor, [[0, 0], [padding, padding], [padding, padding], [0, 0]])          
 
       @staticmethod
       def antipad(tensor: tf.Tensor, padding: int = 1) -> tf.Tensor:
