@@ -23,9 +23,9 @@ class Mutator(object):
           return tf.pad(tensor, [[0, 0], [padding, padding], [padding, padding], [0, 0]])
 
       @staticmethod
-      def antipad(tensor: tf.Tensor, channels: int, padding: int = 1) -> tf.Tensor:
+      def antipad(tensor: tf.Tensor, channels: int, padding: int = 1, name: str = None) -> tf.Tensor:
           n, h, w = tf.shape(tensor)[0], tf.shape(tensor)[1], tf.shape(tensor)[2]
-          return tf.slice(tensor, begin=[0, padding, padding, 0], size=[n, h - 2 * padding, w - 2 * padding, channels])
+          return tf.slice(tensor, begin=[0, padding, padding, 0], size=[n, h - 2 * padding, w - 2 * padding, channels], name=name)
 
       @staticmethod
       def get_operation(name: str, scope: str = None) -> tf.Tensor:
@@ -84,10 +84,12 @@ class Mutator(object):
                       else:
                          Mutator._set_name_to_instance(name, f'{name}/BiasAdd')
                 def _op(input_tensor: tf.Tensor) -> tf.Tensor:
-                    tensor_out = layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides,
+                    _name = name if not batch_norm and not activation else None
+                    tensor_out = layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, name=_name
                                                trainable=Mutator.trainable)(input_tensor)
                     if batch_norm:
-                       tensor_out = layers.BatchNormalization(trainable=Mutator.trainable)(tensor_out)
+                       _name = name if not activation else None
+                       tensor_out = layers.BatchNormalization(trainable=Mutator.trainable, name=_name)(tensor_out)
                     if activation:
                        return layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1), trainable=Mutator.trainable, name=name)(tensor_out)
                     return tensor_out
@@ -102,7 +104,8 @@ class Mutator(object):
                    else:
                       Mutator._set_name_to_instance(name, f'{name}/BiasAdd')
                 def _op(input_tensor: tf.Tensor) -> tf.Tensor:
-                    tensor_out = layers.Conv2DTranspose(filters=filters, kernel_size=kernel_size, strides=strides,
+                    _name = name if not activation else None
+                    tensor_out = layers.Conv2DTranspose(filters=filters, kernel_size=kernel_size, strides=strides, name=_name
                                                         trainable=Mutator.trainable, name=name)(input_tensor)
                     if activation:
                        return layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1), trainable=Mutator.trainable, name=name)(tensor_out)
@@ -121,7 +124,7 @@ class Mutator(object):
                    Mutator._set_name_to_instance(name, name)
                 def _op(input_tensor: tf.Tensor) -> tf.Tensor:
                     tensor_out = Mutator.layers.Conv2DTranspose(filters, (4, 4), (2, 2))(input_tensor)
-                    return Mutator.antipad(tensor_out, filters)
+                    return Mutator.antipad(tensor_out, filters, name=name)
                 return _op
 
             @staticmethod
@@ -130,7 +133,7 @@ class Mutator(object):
                    Mutator._set_name_to_instance(name, name)
                 def _op(input_tensor: tf.Tensor) -> tf.Tensor:
                     tensor_out = Mutator.layers.Conv2DTranspose(2, (4, 4), (2, 2), activation=False)(input_tensor)
-                    return Mutator.antipad(tensor_out, 2)
+                    return Mutator.antipad(tensor_out, 2, name=name)
                 return _op
 
             @staticmethod
