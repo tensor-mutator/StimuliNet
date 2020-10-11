@@ -85,7 +85,7 @@ class Mutator(object):
                          Mutator._set_name_to_instance(name, f'{name}/BiasAdd')
                 def _op(input_tensor: tf.Tensor) -> tf.Tensor:
                     _name = name if not batch_norm and not activation else None
-                    tensor_out = layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, name=_name
+                    tensor_out = layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, name=_name,
                                                trainable=Mutator.trainable)(input_tensor)
                     if batch_norm:
                        _name = name if not activation else None
@@ -105,7 +105,7 @@ class Mutator(object):
                       Mutator._set_name_to_instance(name, f'{name}/BiasAdd')
                 def _op(input_tensor: tf.Tensor) -> tf.Tensor:
                     _name = name if not activation else None
-                    tensor_out = layers.Conv2DTranspose(filters=filters, kernel_size=kernel_size, strides=strides, name=_name
+                    tensor_out = layers.Conv2DTranspose(filters=filters, kernel_size=kernel_size, strides=strides, name=_name,
                                                         trainable=Mutator.trainable, name=name)(input_tensor)
                     if activation:
                        return layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1), trainable=Mutator.trainable, name=name)(tensor_out)
