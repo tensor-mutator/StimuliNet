@@ -5,7 +5,7 @@ A Mutator module for customized operations
 """
 
 from __future__ import print_function, division, absolute_import
-from typing import Callable, Tuple
+from typing import Callable, Tuple, Any
 import tensorflow.compat.v1 as tf
 import tensorflow.compat.v1.keras.layers as layers
 from inspect import stack
@@ -19,18 +19,24 @@ class Mutator(object):
           cls.graph = graph
 
       @staticmethod
-      def BatchNorm() -> Callable:
-          def add_batch_norm(input_tensor: tf.Tensor) -> tf.Tensor:
-              if self._batch_norm:
-                 return layers.BatchNormalization(trainable=Mutator.trainable)(input_tensor)
-              return input_tensor
-          return add_batch_norm
+      def pad(tensor: tf.Tensor, padding: int = 1) -> tf.Tensor:
+          return tf.pad(input_tensor, [[0, 0], [padding, padding], [padding, padding], [0, 0]])          
 
       @staticmethod
-      def ChannelNorm() -> Callable:
-          def add_channel_norm(input_tensor: tf.Tensor) -> tf.Tensor:
-              return tf.sqrt(tf.reduce_sum(tf.square(input_tensor), axis=-1, keep_dims=True))
-          return add_channel_norm    
+      def antipad(tensor: tf.Tensor, padding: int = 1) -> tf.Tensor:
+          n, h, w, c = tf.shape(tensor)[0], tf.shape(tensor)[1], tf.shape(tensor)[2], tf.shape(tensor)[3]
+          return tf.slice(tensor, begin=[0, padding, padding, 0], size=[n, h - 2 * padding, w - 2 * padding, c])
+
+      @staticmethod
+      def get_operation(name: str, scope: str = None) -> tf.Tensor:
+          if scope:
+             return Mutator.graph.get_operation_by_name(f'{scope}/{name}').outputs[0]
+          return Mutator.graph.get_operation_by_name(f'{name}').outputs[0]
+
+      @staticmethod
+      def average_endpoint_error(labels: tf.Tensor, predictions: tf.Tensor) -> tf.Tensor:
+          endpoint_error = tf.sqrt(tf.reduce_sum(tf.square(predictions - labels), axis=-1, keep_dims=True))
+          return tf.reduce_mean(tf.reduce_sum(endpoint_error, axis=[1,2,3]))
 
       @staticmethod
       def _set_name_to_instance(name: str, op_name: str) -> None:
@@ -50,71 +56,74 @@ class Mutator(object):
           names[name] = f'{scope}/{op_name}' if scope else op_name
           setattr(inst, '_names', names)
 
-      @staticmethod
-      def Conv2D(filters: int, kernel_size: Tuple[int, int], strides: Tuple[int, int]=(1, 1), batch_norm: bool = True, name: str = None) -> Callable:
-          if name:
-             Mutator._set_name_to_instance(name, f'{name}/LeakyRelu')
-          def conv2d(input_tensor: tf.Tensor) -> tf.Tensor:
-              tensor_out = tf.pad(input_tensor, [[0, 0], [1, 1], [1, 1], [0, 0]])
-              tensor_out = layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, trainable=Mutator.trainable)(tensor_out)
-              if batch_norm:
-                 tensor_out = layers.BatchNormalization(trainable=Mutator.trainable)(tensor_out)
-              return layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1), trainable=Mutator.trainable, name=name)(tensor_out)
-          return conv2d
+      class layers:
 
-      @staticmethod
-      def Conv2DInter(filters: int, kernel_size: Tuple[int, int], strides: Tuple[int, int], batch_norm: bool = True, name: str = None) -> Callable:
-          if name:
-             if batch_norm:
-                Mutator._set_name_to_instance(name, f'{name}/cond/Identity')
-             else:
-                Mutator._set_name_to_instance(name, f'{name}/BiasAdd')
-          def conv2d(input_tensor: tf.Tensor) -> tf.Tensor:
-              tensor_out = layers.ZeroPadding2D((kernel_size[0] - 1)//2, trainable=Mutator.trainable)(input_tensor)
-              conv_op_name = name if not batch_norm else None
-              tensor_out = layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, trainable=Mutator.trainable, name=conv_op_name)(tensor_out)
-              if batch_norm:
-                 tensor_out = layers.BatchNormalization(trainable=Mutator.trainable, name=name)(tensor_out)
-              return tensor_out
-          return conv2d
+            @staticmethod
+            def BatchNorm(axis: int = 0) -> Callable:
+                def _op(input_tensor: tf.Tensor) -> tf.Tensor:
+                    if self._batch_norm:
+                       return layers.BatchNormalization(axis=axis, trainable=Mutator.trainable)(input_tensor)
+                    return input_tensor
+                return _op
 
-      @staticmethod
-      def Conv2DTranspose(filters: int, kernel_size: Tuple[int, int], strides: Tuple[int, int], padding: int = 1, name: str = None) -> Callable:
-          if name:
-             Mutator._set_name_to_instance(name, f'{name}/BiasAdd')
-          def conv_2d_transpose(input_tensor: tf.Tensor) -> tf.Tensor:
-              #tensor_out = layers.ZeroPadding2D(padding, trainable=Mutator.trainable)(input_tensor)
-              tensor_out = layers.Conv2DTranspose(filters=filters, kernel_size=kernel_size, strides=strides, trainable=Mutator.trainable, name=name)(input_tensor)
-              batch, h, w, c = tf.shape(tensor_out)[0], tf.shape(tensor_out)[1], tf.shape(tensor_out)[2], tf.shape(tensor_out)[3]
-              return tf.slice(tensor_out, begin=[0, padding, padding, 0], size=[batch, h - 2 * padding, w - 2 * padding, c])
-          return conv_2d_transpose
+            @staticmethod
+            def ChannelNorm(axis: int = -1) -> Callable:
+                def _op(input_tensor: tf.Tensor) -> tf.Tensor:
+                    return tf.sqrt(tf.reduce_sum(tf.square(input_tensor), axis=axis, keep_dims=True))
+                return _op
 
-      @staticmethod
-      def Deconv(filters: int, name: str = None) -> Callable:
-          if name:
-             Mutator._set_name_to_instance(name, f'{name}/LeakyRelu')
-          def deconv(input_tensor: tf.Tensor) -> tf.Tensor:
-              tensor_out = layers.ZeroPadding2D(1, trainable=Mutator.trainable)(input_tensor)
-              tensor_out = layers.Conv2DTranspose(filters=filters, kernel_size=(4, 4), strides=(2, 2), trainable=Mutator.trainable)(tensor_out)
-              return layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1), trainable=Mutator.trainable)(tensor_out)
-          return deconv
+            @staticmethod
+            def Conv2D(filters: int, kernel_size: Tuple[int, int], strides: Tuple[int, int] = (1, 1),
+                       batch_norm: bool = True, activation: bool = True, name: str = None) -> Callable:
+                if name:
+                   if activation:
+                      Mutator._set_name_to_instance(name, f'{name}/LeakyRelu')
+                   else:
+                      if batch_norm:
+                         Mutator._set_name_to_instance(name, f'{name}/cond/Identity')
+                      else:
+                         Mutator._set_name_to_instance(name, f'{name}/BiasAdd')
+                def _op(input_tensor: tf.Tensor) -> tf.Tensor:
+                    tensor_out = layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, trainable=Mutator.trainable)(input_tensor)
+                    if batch_norm:
+                       tensor_out = layers.BatchNormalization(trainable=Mutator.trainable)(tensor_out)
+                    if activation:
+                       return layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1), trainable=Mutator.trainable, name=name)(tensor_out)
+                     return tensor_out
+                return _op
 
-      @staticmethod
-      def PredictFlow(name: str = None) -> Callable:
-          if name:
-             Mutator._set_name_to_instance(name, f'{name}/BiasAdd')
-          def predict_flow(input_tensor: tf.Tensor) -> tf.Tensor:
-              #tensor_out = layers.ZeroPadding2D(1, trainable=Mutator.trainable)(input_tensor)
-              return layers.Conv2D(filters=2, kernel_size=(3, 3), trainable=Mutator.trainable, name=name)(input_tensor)
-          return predict_flow
+            @staticmethod
+            def Conv2DTranspose(filters: int, kernel_size: Tuple[int, int], strides: Tuple[int, int] = (1, 1),
+                                activation: bool = True, name: str = None) -> Callable:
+                if name:
+                   if activation:
+                      Mutator._set_name_to_instance(name, f'{name}/LeakyRelu')
+                   else:
+                      Mutator._set_name_to_instance(name, f'{name}/BiasAdd')
+                def _op(input_tensor: tf.Tensor) -> tf.Tensor:
+                    tensor_out = layers.Conv2DTranspose(filters=filters, kernel_size=kernel_size, strides=strides, trainable=Mutator.trainable, name=name)(input_tensor)
+                    if activation:
+                       return layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1), trainable=Mutator.trainable, name=name)(tensor_out)
+                    return tensor_out
+                return _op
 
-      @staticmethod
-      def get_operation(name: str, scope: str = None) -> tf.Tensor:
-          if scope:
-             return Mutator.graph.get_operation_by_name(f'{scope}/{name}').outputs[0]
-          return Mutator.graph.get_operation_by_name(f'{name}').outputs[0]
+            @staticmethod
+            def Conv2DFlow(name: str = None) -> Callable:
+                def _op(input_tensor: tf.Tensor) -> tf.Tensor:
+                    return Mutator.layers.Conv2D(2, (3, 3), batch_norm=False, activation=False, name=name)(Mutator.pad(input_tensor))
+                return _op
 
-      @staticmethod
-      def average_endpoint_error(labels: tf.Tensor, predictions: tf.Tensor) -> tf.Tensor:
-          endpoint_error = tf.sqrt(tf.reduce_sum(tf.square(predictions - labels), axis=-1, keep_dims=True))
-          return tf.reduce_mean(tf.reduce_sum(endpoint_error, axis=[1,2,3]))
+            @staticmethod
+            def Deconv(filters: int, name: str = None) -> Callable:
+                if name:
+                   Mutator._set_name_to_instance(name, name)
+                def _op(input_tensor: tf.Tensor) -> tf.Tensor:
+                    tensor_out = Mutator.layers.Conv2DTranspose(filters, (4, 4), (2, 2))(input_tensor)
+                    return Mutator.antipad(tensor_out)
+                return deconv
+
+            @staticmethod
+            def Conv2DInter(filters: int, name: str = None) -> Callable:
+                def _op(input_tensor: tf.Tensor) -> tf.Tensor:
+                    return Mutator.layers.Conv2D(filters, (3, 3), batch_norm=False, activation=False, name=name)(Mutator.pad(input_tensor))
+                return _op
