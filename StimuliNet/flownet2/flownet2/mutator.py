@@ -23,9 +23,9 @@ class Mutator(object):
           return tf.pad(tensor, [[0, 0], [padding, padding], [padding, padding], [0, 0]])
 
       @staticmethod
-      def antipad(tensor: tf.Tensor, padding: int = 1) -> tf.Tensor:
-          n, h, w, c = tf.shape(tensor)[0], tf.shape(tensor)[1], tf.shape(tensor)[2], tf.shape(tensor)[3]
-          return tf.slice(tensor, begin=[0, padding, padding, 0], size=[n, h - 2 * padding, w - 2 * padding, c])
+      def antipad(tensor: tf.Tensor, channels: int, padding: int = 1) -> tf.Tensor:
+          n, h, w = tf.shape(tensor)[0], tf.shape(tensor)[1], tf.shape(tensor)[2]
+          return tf.slice(tensor, begin=[0, padding, padding, 0], size=[n, h - 2 * padding, w - 2 * padding, channels])
 
       @staticmethod
       def get_operation(name: str, scope: str = None) -> tf.Tensor:
@@ -121,7 +121,7 @@ class Mutator(object):
                    Mutator._set_name_to_instance(name, name)
                 def _op(input_tensor: tf.Tensor) -> tf.Tensor:
                     tensor_out = Mutator.layers.Conv2DTranspose(filters, (4, 4), (2, 2))(input_tensor)
-                    return Mutator.antipad(tensor_out)
+                    return Mutator.antipad(tensor_out, filters)
                 return _op
 
             @staticmethod
@@ -130,7 +130,7 @@ class Mutator(object):
                    Mutator._set_name_to_instance(name, name)
                 def _op(input_tensor: tf.Tensor) -> tf.Tensor:
                     tensor_out = Mutator.layers.Conv2DTranspose(2, (4, 4), (2, 2), activation=False)(input_tensor)
-                    return Mutator.antipad(tensor_out)
+                    return Mutator.antipad(tensor_out, 2)
                 return _op
 
             @staticmethod
