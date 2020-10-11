@@ -120,7 +120,16 @@ class Mutator(object):
                 def _op(input_tensor: tf.Tensor) -> tf.Tensor:
                     tensor_out = Mutator.layers.Conv2DTranspose(filters, (4, 4), (2, 2))(input_tensor)
                     return Mutator.antipad(tensor_out)
-                return deconv
+                return _op
+
+            @staticmethod
+            def Upconv(name: str = None) -> Callable:
+                if name:
+                   Mutator._set_name_to_instance(name, name)
+                def _op(input_tensor: tf.Tensor) -> tf.Tensor:
+                    tensor_out = Mutator.layers.Conv2DTranspose(2, (4, 4), (2, 2), activation=False)(input_tensor)
+                    return Mutator.antipad(tensor_out)
+                return _op
 
             @staticmethod
             def Conv2DInter(filters: int, name: str = None) -> Callable:
