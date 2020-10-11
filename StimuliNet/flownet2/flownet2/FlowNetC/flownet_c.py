@@ -79,7 +79,7 @@ class FlowNetC(Network):
 
       def _upsampling(self) -> None:
           flow6 = Mutator.layers.Conv2DFlow(name='flow6')(Mutator.get_operation(self._names.get('conv6_1')))
-          flow6_up = Mutator.layers.UpConv(name='flow6_up')(flow6)
+          flow6_up = Mutator.layers.Upconv(name='flow6_up')(flow6)
           deconv5 = Mutator.layers.Deconv(filters=512, name='deconv5')(Mutator.get_operation(self._names.get('conv6_1')))
           fuse5 = tf.concat([Mutator.get_operation(self._names.get('conv5_1')), deconv5, flow6_up], axis=3, name='fuse5')
           flow5 = Mutator.layers.Conv2DFlow(name='flow5')(fuse5)
