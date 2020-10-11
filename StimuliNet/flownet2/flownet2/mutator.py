@@ -20,7 +20,7 @@ class Mutator(object):
 
       @staticmethod
       def pad(tensor: tf.Tensor, padding: int = 1) -> tf.Tensor:
-          return tf.pad(tensor, [[0, 0], [padding, padding], [padding, padding], [0, 0]])          
+          return tf.pad(tensor, [[0, 0], [padding, padding], [padding, padding], [0, 0]])
 
       @staticmethod
       def antipad(tensor: tf.Tensor, padding: int = 1) -> tf.Tensor:
@@ -84,7 +84,8 @@ class Mutator(object):
                       else:
                          Mutator._set_name_to_instance(name, f'{name}/BiasAdd')
                 def _op(input_tensor: tf.Tensor) -> tf.Tensor:
-                    tensor_out = layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, trainable=Mutator.trainable)(input_tensor)
+                    tensor_out = layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides,
+                                               trainable=Mutator.trainable)(input_tensor)
                     if batch_norm:
                        tensor_out = layers.BatchNormalization(trainable=Mutator.trainable)(tensor_out)
                     if activation:
@@ -101,7 +102,8 @@ class Mutator(object):
                    else:
                       Mutator._set_name_to_instance(name, f'{name}/BiasAdd')
                 def _op(input_tensor: tf.Tensor) -> tf.Tensor:
-                    tensor_out = layers.Conv2DTranspose(filters=filters, kernel_size=kernel_size, strides=strides, trainable=Mutator.trainable, name=name)(input_tensor)
+                    tensor_out = layers.Conv2DTranspose(filters=filters, kernel_size=kernel_size, strides=strides,
+                                                        trainable=Mutator.trainable, name=name)(input_tensor)
                     if activation:
                        return layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1), trainable=Mutator.trainable, name=name)(tensor_out)
                     return tensor_out
