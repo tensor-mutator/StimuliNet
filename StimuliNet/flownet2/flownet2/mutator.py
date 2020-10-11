@@ -89,7 +89,7 @@ class Mutator(object):
                        tensor_out = layers.BatchNormalization(trainable=Mutator.trainable)(tensor_out)
                     if activation:
                        return layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1), trainable=Mutator.trainable, name=name)(tensor_out)
-                     return tensor_out
+                    return tensor_out
                 return _op
 
             @staticmethod
