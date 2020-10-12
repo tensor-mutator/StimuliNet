@@ -61,7 +61,7 @@ class FlowNetCS(Network):
 
       def _compute_input_tensor_for_flownet_s(self, image_1: tf.Tensor, image_2: tf.Tensor, flow_out: tf.Tensor) -> tf.Tensor:
           warped = dense_image_warp(image_2, flow_out)
-          brightness_error = Mutator.ChannelNorm()(image_1 - warped)
+          brightness_error = Mutator.layers.ChannelNorm()(image_1 - warped)
           return tf.concat([image_1, image_2, warped, flow_out * 0.05, brightness_error], axis=-1)
 
       @property
