@@ -19,7 +19,6 @@ class FlowNetCS(Network):
       def __init__(self, image: Tuple[int, int], batch_norm: bool = True, trainable: bool = True) -> None:
           self._image = image
           self._batch_norm = batch_norm
-          self._div_flow = div_flow
           self._trainable = trainable
           self._scope = 'FlowNetCS'
 
