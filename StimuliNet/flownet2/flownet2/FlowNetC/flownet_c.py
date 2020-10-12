@@ -109,7 +109,7 @@ class FlowNetC(Network):
           writer = tf.summary.FileWriter(dest, graph=self.graph)
           writer.close()
 
-      def _build_loss_ops(self, flow) -> tf.Tensor:
+      def _build_loss_ops(self, flow: Tuple[int, int]) -> tf.Tensor:
           flow = tf.placeholder(dtype=tf.float32, shape=(None,) + flow + (2,))
           flow = flow * self.flow_scale
           losses = list()
