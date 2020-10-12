@@ -75,7 +75,7 @@ class FlowNetS(Network):
           flow4_up = Mutator.layers.Upconv(name='flow4_up')(flow4)
           deconv3 = Mutator.layers.Deconv(filters=128, name='deconv3')(fuse4)
           fuse3 = tf.concat([Mutator.get_operation(self._names.get('conv3_1')), deconv3, flow4_up], axis=3, name='fuse3')
-          flow3 = Mutator.layers.conv2DFlow(name='flow3')(fuse3)
+          flow3 = Mutator.layers.Conv2DFlow(name='flow3')(fuse3)
           flow3_up = Mutator.layers.Upconv(name='flow3_up')(flow3)
           deconv2 = Mutator.layers.Deconv(filters=64, name='deconv2')(fuse3)
           fuse2 = tf.concat([Mutator.get_operation(self._names.get('conv2')), deconv2, flow3_up], axis=3, name='fuse2')
