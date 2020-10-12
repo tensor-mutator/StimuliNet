@@ -95,7 +95,7 @@ class FlowNetC(Network):
           flow3_up = Mutator.layers.Upconv(name='flow3_up')(flow3)
           deconv2 = Mutator.layers.Deconv(filters=64, name='deconv2')(fuse3)
           fuse2 = tf.concat([Mutator.get_operation(self._names.get('conv2a')), deconv2, flow3_up], axis=3, name='fuse2')
-          flow2 = Mutator.layers.Conv2DFlow(name='flow2')(fuse2)
+          flow2 = Mutator.layers.Conv2DFlow(name='flow2', scale=20.0, resize=self._image)(fuse2)
 
       @property
       def inputs(self) -> Sequence[tf.Tensor]:
