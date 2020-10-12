@@ -44,7 +44,7 @@ class FlowNetCS(Network):
           flownet_c = FlowNetC(self._image, self._flow, self._batch_norm, trainable=False)
           flownet_c_return = tf.import_graph_def(flownet_c.graph_def,
                                                 input_map={x.name: [self._image_1, self._image_2][i] for i, x in enumerate(flownet_c.inputs)},
-                                                return_elements=list(map(lambda x: x.name, flownet_c.outputs)))
+                                                return_elements=list(map(lambda x: x.name, flownet_c.outputs)), name="FlowNetC Graph")
           flownet_s_input_tensor = self._compute_input_tensor_for_flownet_s(self._image_1, self._image_2, flownet_c_return[0])
           flownet_s = FlowNetS(self._image, self._flow, self._batch_norm, trainable=self._trainable)
           if self._trainable:
@@ -57,7 +57,7 @@ class FlowNetCS(Network):
           else:
              self._flownet_cs_return = tf.import_graph_def(flownet_s.graph_def,
                                                            input_map={flownet_s.inputs[0].name: flownet_s_input_tensor},
-                                                           return_elements=list(map(lambda x: x.name, flownet_s.outputs)))
+                                                           return_elements=list(map(lambda x: x.name, flownet_s.outputs)), name="FlowNetS Graph")
 
       def _compute_input_tensor_for_flownet_s(self, image_1: tf.Tensor, image_2: tf.Tensor, flow_out: tf.Tensor) -> tf.Tensor:
           warped = dense_image_warp(image_2, flow_out)
