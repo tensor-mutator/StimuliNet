@@ -86,7 +86,7 @@ class FlowNetS(Network):
           return [self._input]
 
       @property
-      def ouputs(self) -> Sequence[tf.Tensor]:
+      def outputs(self) -> Sequence[tf.Tensor]:
           return [Mutator.get_operation(self._names.get('flow2')) * 20]
       
       def get_graph(self, dest: str = os.getcwd()) -> None:
