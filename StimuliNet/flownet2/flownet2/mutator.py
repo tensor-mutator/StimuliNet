@@ -113,8 +113,13 @@ class Mutator(object):
                 return _op
 
             @staticmethod
-            def Conv2DFlow(name: str = None) -> Callable:
+            def Conv2DFlow(name: str = None, scale: float = None) -> Callable:
+                if name and scale:
+                   Mutator._set_name_to_instance(name, name)
                 def _op(input_tensor: tf.Tensor) -> tf.Tensor:
+                    if scale:
+                       return tf.multiply(Mutator.layers.Conv2D(2, (3, 3), batch_norm=False, activation=False)(Mutator.pad(input_tensor)),
+                                          scale, name=name)
                     return Mutator.layers.Conv2D(2, (3, 3), batch_norm=False, activation=False, name=name)(Mutator.pad(input_tensor))
                 return _op
 
