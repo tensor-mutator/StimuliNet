@@ -56,8 +56,8 @@ class FlowNetFusion(Network):
           flow1_up = Mutator.layers.Upconv(name='flow1_up')(flow1)
           deconv0 = Mutator.layers.Deconv(filters=16, name='deconv0')(fuse1)
           fuse0 = tf.concat([Mutator.get_operation(self._names.get('conv0')), deconv0, flow1_up], axis=3, name='fuse0')
-          interconv0 = Mutator.Conv2DInter(filters=16, name='interconv0')(fuse0)
-          flow0 = Mutator.Conv2DFlow(name='flow0', resize=self._image)(interconv0)
+          interconv0 = Mutator.layers.Conv2DInter(filters=16, name='interconv0')(fuse0)
+          flow0 = Mutator.layers.Conv2DFlow(name='flow0', resize=self._image)(interconv0)
 
       @property
       def inputs(self) -> Sequence[tf.Tensor]:
