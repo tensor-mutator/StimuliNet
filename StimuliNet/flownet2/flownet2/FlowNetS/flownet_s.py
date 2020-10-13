@@ -11,6 +11,7 @@ from typing import Tuple, Sequence
 import os
 from ..mutator import Mutator
 from ..network import Network
+from ..exceptions import *
 
 class FlowNetS(Network):
 
@@ -114,3 +115,6 @@ class FlowNetS(Network):
           losses.append(Mutator.average_endpoint_error(flow2_labels, flow2))
           loss = tf.losses.compute_weighted_loss(losses, [0.32, 0.08, 0.02, 0.01, 0.005])
           return dict(input=flow, output=tf.losses.get_total_loss())
+
+      def model(self, *args, **kwargs) -> None:
+          raise NotTrainableError(f"Model: {self.__class__.__name__} cannot be trained as a separate block")
