@@ -85,7 +85,7 @@ class FlowNet2(Network):
 
       def _build_loss_ops(self, flow) -> tf.Tensor:
           flow = tf.placeholder(dtype=tf.float32, shape=(None,) + flow + (2,))
-          flow0 = Mutator.get_operation(self._flownet_fusion._names.get('flow0'))
+          flow0 = self._flownet_2_patch[0]
           flow0_labels = tf.image.resize(flow, [flow0.shape[1], flow0.shape[2]])
           loss = Mutator.average_endpoint_error(flow0_labels, flow0)
           tf.losses.add_loss(loss)
