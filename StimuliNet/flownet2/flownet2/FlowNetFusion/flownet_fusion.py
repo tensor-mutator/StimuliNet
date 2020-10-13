@@ -11,6 +11,7 @@ from typing import Tuple, Callable, Sequence
 import os
 from ..mutator import Mutator
 from ..network import Network
+from ..exceptions import *
 
 class FlowNetFusion(Network):
 
@@ -70,3 +71,6 @@ class FlowNetFusion(Network):
       def get_graph(self, dest: str = os.getcwd()) -> None:
           writer = tf.summary.FileWriter(dest, graph=self.graph)
           writer.close()
+
+      def model(self, *args, **kwargs) -> None:
+          raise NotTrainableError(f"Model: {self.__class__.__name__} cannot be trained as a separate block")
