@@ -3,7 +3,7 @@ class NotTrainableError(Exception):
       def __init__(self, msg: str) -> None:
           super(NotTrainableError, self).__init__(msg)
 
-class InvalidHyperparameterError(Exception):
+class ScheduleNotFoundError(Exception):
 
       def __init__(self, msg: str) -> None:
-          super(InvalidHyperparameterError, self).__init__(msg)
+          super(ScheduleNotFoundError, self).__init__(msg)
