@@ -14,9 +14,9 @@ from ..network import Network
 
 class FlowNetFusion(Network):
 
-      def __init__(self, patch: tf.TensorShape, batch_norm: bool = True, trainable: bool = True) -> None:
+      def __init__(self, image: Tuple[int, int], batch_norm: bool = True, trainable: bool = True) -> None:
           self._batch_norm = batch_norm
-          self._patch = patch
+          self._image = image
           self._trainable = trainable
           self._scope = 'FlowNetFusion'
           self._build_graph_with_scope()
@@ -31,7 +31,7 @@ class FlowNetFusion(Network):
       def _build_graph(self) -> None:
           Mutator.set_graph(self.graph)
           Mutator.trainable = self._trainable
-          self._input = tf.placeholder(dtype=tf.float32, shape=self._patch, name='fusion_input')
+          self._input = tf.placeholder(dtype=tf.float32, shape=(None, ) + self._image + (3,), name='fusion_input')
           self._downsampling()
           self._upsampling()
 
@@ -40,24 +40,24 @@ class FlowNetFusion(Network):
           return self.graph.as_graph_def()
 
       def _downsampling(self) -> None:
-          conv0 = Mutator.Conv2D(filters=64, kernel_size=(3, 3), batch_norm=self._batch_norm, name='conv0')(self._input)
-          conv1 = Mutator.Conv2D(filters=64, kernel_size=(3, 3), strides=(2, 2), batch_norm=self._batch_norm, name='conv1')(conv0)
-          conv1_1 = Mutator.Conv2D(filters=128, kernel_size=(3, 3), batch_norm=self._batch_norm, name='conv1_1')(conv1)
-          conv2 = Mutator.Conv2D(filters=128, kernel_size=(3, 3), strides=(2, 2), batch_norm=self._batch_norm, name='conv2')(conv1_1)
-          conv2_1 = Mutator.Conv2D(filters=128, kernel_size=(3, 3), batch_norm=self._batch_norm, name='conv2_1')(conv2)
+          conv0 = Mutator.layers.Conv2D(filters=64, kernel_size=(3, 3), batch_norm=self._batch_norm, name='conv0')(Mutator.pad(self._input))
+          conv1 = Mutator.layers.Conv2D(filters=64, kernel_size=(3, 3), strides=(2, 2), batch_norm=self._batch_norm, name='conv1')(Mutator.pad(conv0))
+          conv1_1 = Mutator.layers.Conv2D(filters=128, kernel_size=(3, 3), batch_norm=self._batch_norm, name='conv1_1')(Mutator.pad(conv1))
+          conv2 = Mutator.layers.Conv2D(filters=128, kernel_size=(3, 3), strides=(2, 2), batch_norm=self._batch_norm, name='conv2')(Mutator.pad(conv1_1))
+          conv2_1 = Mutator.layers.Conv2D(filters=128, kernel_size=(3, 3), batch_norm=self._batch_norm, name='conv2_1')(Mutator.pad(conv2))
 
       def _upsampling(self) -> None:
-          flow2 = Mutator.PredictFlow(name='flow2')(Mutator.get_operation(self._names.get('conv2_1')))
-          flow2_up = Mutator.Conv2DTranspose(filters=2, kernel_size=(4, 4), strides=(2, 2), padding=1, name='flow2_up')(flow2)
-          deconv1 = Mutator.Deconv(filters=32, name='deconv1')(Mutator.get_operation(self._names.get('conv2_1')))
-          fuse1 = tf.concat([Mutator.get_operation(self._names.get('conv1_1')), deconv1, flow2_up], axis=1, name='fuse1')
-          interconv1 = Mutator.Conv2DInter(filters=32, kernel_size=(3, 3), batch_norm=self._batch_norm, name='interconv1')(fuse1)
-          flow1 = Mutator.PredictFlow(name='flow1')(interconv1)
-          flow1_up = Mutator.Conv2DTranspose(filters=2, kernel_size=(4, 4), strides=(2, 2), padding=1, name='flow1_up')(flow1)
-          deconv0 = Mutator.Deconv(filters=16, name='deconv0')(fuse1)
-          fuse0 = tf.concat([Mutator.get_operation(self._names.get('conv0')), deconv0, flow1_up], axis=1, name='fuse0')
-          interconv0 = Mutator.Conv2DInter(filters=16, kernel_size=(3, 3), batch_norm=self._batch_norm, name='interconv0')(fuse0)
-          flow0 = Mutator.PredictFlow(name='flow0')(interconv0)
+          flow2 = Mutator.layers.Conv2DFlow(name='flow2')(Mutator.get_operation(self._names.get('conv2_1')))
+          flow2_up = Mutator.layers.Upconv(name='flow2_up')(flow2)
+          deconv1 = Mutator.layers.Deconv(filters=32, name='deconv1')(Mutator.get_operation(self._names.get('conv2_1')))
+          fuse1 = tf.concat([Mutator.get_operation(self._names.get('conv1_1')), deconv1, flow2_up], axis=3, name='fuse1')
+          interconv1 = Mutator.layers.Conv2DInter(filters=32, name='interconv1')(fuse1)
+          flow1 = Mutator.layers.Conv2DFlow(name='flow1')(interconv1)
+          flow1_up = Mutator.layers.Upconv(name='flow1_up')(flow1)
+          deconv0 = Mutator.layers.Deconv(filters=16, name='deconv0')(fuse1)
+          fuse0 = tf.concat([Mutator.get_operation(self._names.get('conv0')), deconv0, flow1_up], axis=3, name='fuse0')
+          interconv0 = Mutator.Conv2DInter(filters=16, name='interconv0')(fuse0)
+          flow0 = Mutator.Conv2DFlow(name='flow0', resize=self._image)(interconv0)
 
       @property
       def inputs(self) -> Sequence[tf.Tensor]:
