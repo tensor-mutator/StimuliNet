@@ -41,7 +41,7 @@ class FlowNetCSS(Network):
           Mutator.set_graph(self.graph)
           self._image_1 = tf.placeholder(shape=(None,) + self._image + (3,), dtype=tf.float32, name='image_1_css')
           self._image_2 = tf.placeholder(shape=(None,) + self._image + (3,), dtype=tf.float32, name='image_2_css')
-          flownet_cs = FlowNetCS(self._image, self._batch_norm, trainable=False)
+          flownet_cs = FlowNetCS(self._image, self._flow, self._batch_norm, trainable=False)
           flownet_cs_patch = tf.import_graph_def(flownet_cs.graph_def,
                                                  input_map={x.name: [self._image_1, self._image_2][i] for i, x in enumerate(flownet_cs.inputs)},
                                                  return_elements=list(map(lambda x: x.name, flownet_cs.outputs)), name="FlowNetCS-Graph")
