@@ -5,6 +5,8 @@ with warnings.catch_warnings():
 tf.logging.set_verbosity(tf.logging.WARN)
 tf.logging.set_verbosity(tf.logging.ERROR)
 tf.disable_eager_execution()
+import os
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = '3'
 from .mutator import Mutator
 from .network import Network
 from .flownet_2 import FlowNet2
