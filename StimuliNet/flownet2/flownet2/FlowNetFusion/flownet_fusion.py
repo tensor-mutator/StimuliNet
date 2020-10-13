@@ -31,7 +31,7 @@ class FlowNetFusion(Network):
       def _build_graph(self) -> None:
           Mutator.set_graph(self.graph)
           Mutator.trainable = self._trainable
-          self._input = tf.placeholder(dtype=tf.float32, shape=(None, ) + self._image + (3,), name='fusion_input')
+          self._input = tf.placeholder(dtype=tf.float32, shape=(None, ) + self._image + (11,), name='fusion_input')
           self._downsampling()
           self._upsampling()
 
