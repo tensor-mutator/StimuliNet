@@ -87,7 +87,7 @@ class FlowNetSD(Network):
           interconv4 = Mutator.layers.Conv2DInter(filters=256, name='interconv4')(fuse4)
           flow4 = Mutator.layers.Conv2DFlow(name='flow4')(interconv4)
           flow4_up = Mutator.layers.Upconv(name='flow4_up')(flow4)
-          deconv3 = Mutator.Deconv(filters=128, name='deconv3')(fuse4)
+          deconv3 = Mutator.layers.Deconv(filters=128, name='deconv3')(fuse4)
           fuse3 = tf.concat([Mutator.get_operation(self._names.get('conv3_1')), deconv3, flow4_up], axis=3, name='fuse3')
           interconv3 = Mutator.layers.Conv2DInter(filters=128, name='interconv4')(fuse3)
           flow3 = Mutator.layers.Conv2DFlow(name='flow3')(interconv3)
