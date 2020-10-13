@@ -56,8 +56,8 @@ class FlowNet2(Network):
                                                                                       flownet_css_patch[0], flownet_sd_patch[0])
           self._flownet_fusion = FlowNetFusion(self._image, self._batch_norm, trainable=self._trainable)
           self._flownet_2_patch = tf.import_graph_def(self._flownet_fusion.graph_def,
-                              input_map={self._flownet_fusion.inputs[0].name: flownet_fusion_input_tensor},
-                              return_elements=list(map(lambda x: x.name, self._flownet_fusion.outputs)))
+                                                      input_map={self._flownet_fusion.inputs[0].name: flownet_fusion_input_tensor},
+                                                      return_elements=list(map(lambda x: x.name, self._flownet_fusion.outputs)))
 
 
       def _compute_input_tensor_for_flownet_fusion(self, image_1: tf.Tensor, image_2: tf.Tensor, 
