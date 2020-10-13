@@ -42,10 +42,10 @@ class FlowNetCS(Network):
           self._image_1 = tf.placeholder(shape=(None,) + self._image + (3,), dtype=tf.float32, name='image_1_cs')
           self._image_2 = tf.placeholder(shape=(None,) + self._image + (3,), dtype=tf.float32, name='image_2_cs')
           flownet_c = FlowNetC(self._image, self._flow, self._batch_norm, trainable=False)
-          flownet_c_return = tf.import_graph_def(flownet_c.graph_def,
+          flownet_c_patch = tf.import_graph_def(flownet_c.graph_def,
                                                 input_map={x.name: [self._image_1, self._image_2][i] for i, x in enumerate(flownet_c.inputs)},
                                                 return_elements=list(map(lambda x: x.name, flownet_c.outputs)), name="FlowNetC Graph")
-          flownet_s_input_tensor = self._compute_input_tensor_for_flownet_s(self._image_1, self._image_2, flownet_c_return[0])
+          flownet_s_input_tensor = self._compute_input_tensor_for_flownet_s(self._image_1, self._image_2, flownet_c_patch[0])
           flownet_s = FlowNetS(self._image, self._flow, self._batch_norm, trainable=self._trainable)
           if self._trainable:
              self._flow_label = tf.placeholder(dtype=tf.float32, shape=(None,) + self._flow + (2,))
