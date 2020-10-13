@@ -49,13 +49,13 @@ class FlowNetCS(Network):
           flownet_s = FlowNetS(self._image, self._flow, self._batch_norm, trainable=self._trainable)
           if self._trainable:
              self._flow_label = tf.placeholder(dtype=tf.float32, shape=(None,) + self._flow + (2,))
-             self._flownet_cs_return, self._loss = tf.import_graph_def(flownet_s.graph_def,
+             self._flownet_cs_patch, self._loss = tf.import_graph_def(flownet_s.graph_def,
                                                                        input_map={flownet_s.inputs[0].name: flownet_s_input_tensor,
                                                                                   flownet_s.loss.input.name: self._flow_label},
                                                                        return_elements=list(map(lambda x: x.name,
                                                                                                 flownet_s.outputs)) + [flownet_s.loss.output.name])
           else:
-             self._flownet_cs_return = tf.import_graph_def(flownet_s.graph_def,
+             self._flownet_cs_patch = tf.import_graph_def(flownet_s.graph_def,
                                                            input_map={flownet_s.inputs[0].name: flownet_s_input_tensor},
                                                            return_elements=list(map(lambda x: x.name, flownet_s.outputs)), name="FlowNetS Graph")
 
@@ -70,7 +70,7 @@ class FlowNetCS(Network):
 
       @property
       def outputs(self) -> Sequence[tf.Tensor]:
-          return [self._flownet_cs_return]
+          return [self._flownet_cs_patch]
 
       def get_graph(self, dest: str = os.getcwd()) -> None:
           writer = tf.summary.FileWriter(dest, graph=self.graph)
