@@ -48,17 +48,17 @@ class FlowNet2(Network):
           flownet_sd = FlowNetSD(self._image, self._flow, self._batch_norm, trainable=False)
           flownet_css_patch = tf.import_graph_def(flownet_css.graph_def,
                                                   input_map={x.name: [self._image_1, self._image_2][i] for i, x in enumerate(flownet_css.inputs)},
-                                                  return_elements=list(map(lambda x: x.name, flownet_css.outputs)))
+                                                  return_elements=list(map(lambda x: x.name, flownet_css.outputs)), name="FlowNetCSS-Graph")
           flownet_sd_patch = tf.import_graph_def(flownet_sd.graph_def,
                                                  input_map={x.name: [self._image_1, self._image_2][i] for i, x in enumerate(flownet_sd.inputs)},
-                                                 return_elements=list(map(lambda x: x.name, flownet_sd.outputs)))
+                                                 return_elements=list(map(lambda x: x.name, flownet_sd.outputs)), name="FlowNetSD-Graph")
           flownet_fusion_input_tensor = self._compute_input_tensor_for_flownet_fusion(self._image_1, self._image_2,
                                                                                       flownet_css_patch[0], flownet_sd_patch[0])
           self._flownet_fusion = FlowNetFusion(self._image, self._batch_norm, trainable=self._trainable)
           self._flownet_2_patch = tf.import_graph_def(self._flownet_fusion.graph_def,
                                                       input_map={self._flownet_fusion.inputs[0].name: flownet_fusion_input_tensor},
-                                                      return_elements=list(map(lambda x: x.name, self._flownet_fusion.outputs)))
-
+                                                      return_elements=list(map(lambda x: x.name, self._flownet_fusion.outputs)),
+                                                      name="FlowNetFusion-Graph")
 
       def _compute_input_tensor_for_flownet_fusion(self, image_1: tf.Tensor, image_2: tf.Tensor, 
                                                    flow_out_css: tf.Tensor, flow_out_sd: tf.Tensor) -> tf.Tensor:
