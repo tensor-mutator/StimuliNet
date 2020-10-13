@@ -7,13 +7,18 @@ from .exceptions import *
 
 class Pipeline:
 
-      def __init__(self, network: Network, schedule: str) -> None:
+      def __init__(self, network: Network, schedule: str, img_resolution: Tuple[int, int],
+                   flow_resolution: Tuple[int, int]) -> None:
           self._network = network
-          self._read_params(hyperparams_file)
+          self._read_params(schedule)
+          self._X_placeholder = tf.placeholder(shape=(None, 2,) + img_resolution + (3,), dtype=tf.float32)
+          self._y_placeholder = tf.placeholder(shape=(None,) + flow_resolution + (2,), dtype=tf.float32)
 
       def _read_params(self, schedule: str) -> None:
           with open(os.path.join(os.path.split(__file__)[0], "flownet2.hyperparams"), "r") as f_obj:
-               params = json.load(f_obj)
+               params = json.load(f_obj).get(schedule, None)
+          if params is None:
+             raise ScheduleNotFoundError(f"Schedule: {schedule} not found")
           boundaries = params["boundaries"]
           learning_rates = params["learning_rates"]
           beta1 = params.get("beta1", 0.9)
