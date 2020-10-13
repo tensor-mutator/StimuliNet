@@ -62,12 +62,12 @@ class FlowNet2(Network):
 
       def _compute_input_tensor_for_flownet_fusion(self, image_1: tf.Tensor, image_2: tf.Tensor, 
                                                    flow_out_css: tf.Tensor, flow_out_sd: tf.Tensor) -> tf.Tensor:
-          flow_out_css_norm = Mutator.ChannelNorm()(flow_out_css)
-          flow_out_sd_norm = Mutator.ChannelNorm()(flow_out_sd)
+          flow_out_css_norm = Mutator.layers.ChannelNorm()(flow_out_css)
+          flow_out_sd_norm = Mutator.layers.ChannelNorm()(flow_out_sd)
           warped_sd = dense_image_warp(image_2, flow_out_sd)
-          brightness_error_sd = Mutator.ChannelNorm()(image_1 - warped_sd)
+          brightness_error_sd = Mutator.layers.ChannelNorm()(image_1 - warped_sd)
           warped_css = dense_image_warp(image_2, flow_out_css)
-          brightness_error_css = Mutator.ChannelNorm()(image_1 - warped_css)
+          brightness_error_css = Mutator.layers.ChannelNorm()(image_1 - warped_css)
           return tf.concat([image_1, flow_out_sd, flow_out_css, flow_out_sd_norm, flow_out_css_norm, brightness_error_sd,
                             brightness_error_css], axis=-1)
 
