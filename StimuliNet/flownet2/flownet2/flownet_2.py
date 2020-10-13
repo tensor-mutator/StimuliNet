@@ -17,9 +17,11 @@ import os
 
 class FlowNet2(Network):
 
-      def __init__(self, image: Tuple[int, int, int], batch_norm: bool = True) -> None:
+      def __init__(self, image: Tuple[int, int], flow: Tuple[int, int], batch_norm: bool = True, trainable:  bool = True) -> None:
           self._image = image
+          self._flow = flow
           self._batch_norm = batch_norm
+          self._trainable = trainable
           self._scope = 'FlowNet2.0'
           self._build_graph_with_scope()
 
@@ -28,8 +30,9 @@ class FlowNet2(Network):
           with self.graph.as_default():
                with tf.variable_scope(self._scope):
                     self._build_graph()
-                    loss_input_output = self._build_loss_ops()
-                    self.loss = type('loss', (object,), loss_input_output)
+                    if self._trainable:
+                       loss_input_output = self._build_loss_ops(self._flow)
+                       self.loss = type('loss', (object,), loss_input_output)
           return self.graph
 
       @property
@@ -38,18 +41,20 @@ class FlowNet2(Network):
 
       def _build_graph(self) -> None:
           Mutator.set_graph(self.graph)
-          self._image_1 = tf.placeholder(shape=(None,) + self._image, dtype=tf.float32, name='image_1_2')
-          self._image_2 = tf.placeholder(shape=(None,) + self._image, dtype=tf.float32, name='image_2_2')
-          flownet_css = FlowNetCSS(self._image, self._batch_norm, trainable=False)
-          flownet_sd = FlowNetSD(self._image, self._batch_norm, trainable=False)
+          Mutator.trainable = self._trainable
+          self._image_1 = tf.placeholder(shape=(None,) + self._image + (3,), dtype=tf.float32, name='image_1_2')
+          self._image_2 = tf.placeholder(shape=(None,) + self._image + (3,), dtype=tf.float32, name='image_2_2')
+          flownet_css = FlowNetCSS(self._image, self._flow, self._batch_norm, trainable=False)
+          flownet_sd = FlowNetSD(self._image, self._flow, self._batch_norm, trainable=False)
           flownet_css_patch = tf.import_graph_def(flownet_css.graph_def,
                                                   input_map={x.name: [self._image_1, self._image_2][i] for i, x in enumerate(flownet_css.inputs)},
                                                   return_elements=list(map(lambda x: x.name, flownet_css.outputs)))
           flownet_sd_patch = tf.import_graph_def(flownet_sd.graph_def,
                                                  input_map={x.name: [self._image_1, self._image_2][i] for i, x in enumerate(flownet_sd.inputs)},
                                                  return_elements=list(map(lambda x: x.name, flownet_sd.outputs)))
-          flownet_fusion_input_tensor = self._compute_input_tensor_for_flownet_fusion(self._image_1, self._image_2, flownet_css_patch, flownet_sd_patch)
-          self._flownet_fusion = FlowNetFusion(flownet_fusion_input_tensor.get_shape(), self._batch_norm)
+          flownet_fusion_input_tensor = self._compute_input_tensor_for_flownet_fusion(self._image_1, self._image_2,
+                                                                                      flownet_css_patch[0], flownet_sd_patch[0])
+          self._flownet_fusion = FlowNetFusion(self._image, self._batch_norm, trainable=self._trainable)
           self._flownet_2_patch = tf.import_graph_def(self._flownet_fusion.graph_def,
                               input_map={self._flownet_fusion.inputs[0].name: flownet_fusion_input_tensor},
                               return_elements=list(map(lambda x: x.name, self._flownet_fusion.outputs)))
@@ -72,14 +77,14 @@ class FlowNet2(Network):
 
       @property
       def outputs(self) -> Sequence[tf.Tensor]:
-          return [self._flownet_2_patch]
+          return [self._flownet_2_patch[0]]
 
       def get_graph(self, dest: str = os.getcwd()) -> None:
           writer = tf.summary.FileWriter(dest, graph=self.graph)
           writer.close()
 
-      def _build_loss_ops(self) -> tf.Tensor:
-          flow = tf.placeholder(dtype=tf.float32, shape=(None,) + self._image)
+      def _build_loss_ops(self, flow) -> tf.Tensor:
+          flow = tf.placeholder(dtype=tf.float32, shape=(None,) + flow + (2,))
           flow0 = Mutator.get_operation(self._flownet_fusion._names.get('flow0'))
           flow0_labels = tf.image.resize(flow, [flow0.shape[1], flow0.shape[2]])
           loss = Mutator.average_endpoint_error(flow0_labels, flow0)
