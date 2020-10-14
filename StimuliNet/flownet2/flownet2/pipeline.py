@@ -131,7 +131,7 @@ class Pipeline:
           X_, y_ = self._iterator.get_next()
           network.model(X_, y_)
 
-      def _generate_target_graph(self, network: Ntwork) -> Network:
+      def _generate_target_graph(self, network: Network) -> Network:
           with tf.variable_scope("target"):
                self._X_predict = tf.placeholder(shape=(None, 2,) + self._img_res + (3,), dtype=tf.float32, name="X")
                network = network(self._img_res, self._flow_res, self._batch_norm)
