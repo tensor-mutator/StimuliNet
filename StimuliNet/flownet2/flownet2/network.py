@@ -40,7 +40,7 @@ class Network(metaclass=ABCMeta):
                return
           self.cost, self.y = tf.import_graph_def(self.graph_def,
                                                   input_map={self.inputs[0].name: X[:, 0, :, :, :],
-                                                              self.inputs[1].name: X[:, 1, :, :, :],
-                                                              self.loss.input.name: y},
+                                                             self.inputs[1].name: X[:, 1, :, :, :],
+                                                             self.loss.input.name: y},
                                                   return_elements=[self.loss.output.name, self.outputs[0].name])
           self.src_img, self.dest_img = self.inputs
