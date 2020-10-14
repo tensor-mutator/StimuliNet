@@ -16,6 +16,7 @@ from typing import Dict, List, Generator, Any
 from .network import Network
 from .exceptions import *
 from .config import config
+from .flowkit import write_flow, flow_to_image
 
 GREEN = "\033[32m"
 MAGENTA = "\033[35m"
@@ -42,7 +43,7 @@ class Pipeline:
           self._session = tf.Session(config=self._get_config())
           self._load_frozen_weights(frozen_config)
           self._model_name = network.__class__.__name__
-          self._checkpoint_dir = self._generate_checkpoint_directory()
+          self._checkpoint_dir, self._flow_dir = self._generate_checkpoint_directory()
 
       def _read_params(self, schedule: str) -> None:
           with open(os.path.join(os.path.split(__file__)[0], "flownet2.hyperparams"), "r") as f_obj:
@@ -93,10 +94,15 @@ class Pipeline:
           return dataset.make_initializable_iterator()
 
       def _generate_checkpoint_directory(self) -> str:
-          dir = os.path.join(os.path.split(__file__)[0], "weights")
-          if not os.path.exists(dir):
-             os.mkdir(dir)
-          return dir
+          weight_dir = os.path.join(os.path.split(__file__)[0], "weights")
+          if not os.path.exists(weight_dir):
+             os.mkdir(weight_dir)
+          flow_dir = None
+          if self._config & config.SAVE_FLOW:
+             flow_dir = os.path.join(os.path.split(__file__)[0], "flows")
+             if not os.path.exists(flow_dir):
+             os.mkdir(flow_dir)
+          return weight_dir, flow_dir
 
       def _generate_local_graph(self, network: Network) -> Network:
           with tf.variable_scope("local"):
