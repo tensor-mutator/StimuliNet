@@ -12,7 +12,7 @@ from contextlib import contextmanager
 import numpy as np
 from tqdm import tqdm
 from glob import glob
-from typing import Dict, List, Generator, Any
+from typing import Dict, List, Generator, Any, Tuple
 import cv2
 from .network import Network
 from .exceptions import *
