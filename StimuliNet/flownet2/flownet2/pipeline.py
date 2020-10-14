@@ -102,7 +102,7 @@ class Pipeline:
           if self._config & config.SAVE_FLOW:
              flow_dir = os.path.join(os.path.split(__file__)[0], "flows")
              if not os.path.exists(flow_dir):
-             os.mkdir(flow_dir)
+                os.mkdir(flow_dir)
           return weight_dir, flow_dir
 
       def _generate_local_graph(self, network: Network) -> Network:
