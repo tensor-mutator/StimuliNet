@@ -17,3 +17,4 @@ from .FlowNetCSS.flownet_css import FlowNetCSS
 from .FlowNetFusion.flownet_fusion import FlowNetFusion
 from .FlowNetSD.flownet_sd import FlowNetSD
 from .flowkit import *
+from .config import config
