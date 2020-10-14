@@ -123,8 +123,8 @@ class Pipeline:
 
       def _generate_summary_writer(self) -> Any:
           if self._config & config.LOSS_EVENT:
-             train_writer = tf.summary.FileWriter(os.path.join(self._model_name, "{} TRAIN EVENTS".format(self._model_name)), self._session.graph)
-             test_writer = tf.summary.FileWriter(os.path.join(self._model_name, "{} TEST EVENTS".format(self._model_name)), self._session.graph)
+             train_writer = tf.summary.FileWriter(os.path.join(self._checkpoint_dir, "{} TRAIN EVENTS".format(self._model_name)), self._session.graph)
+             test_writer = tf.summary.FileWriter(os.path.join(self._checkpoint_dir, "{} TEST EVENTS".format(self._model_name)), self._session.graph)
              return train_writer, test_writer
           return None, None
 
@@ -137,10 +137,21 @@ class Pipeline:
               update_ops.append(to_.assign(from_))
           return tf.group(update_ops)
 
+      def _save_summary(self, writer: tf.summary.FileWriter, epoch: int, loss: float, n_batches: int) -> None:
+          summary = tf.Summary()
+          if self._config & config.LOSS_EVENT:
+             summary.value.add(tag="{} Performance/Epoch - Loss".format(self._model_name), simple_value=loss/n_batches)
+          if writer:
+             writer.add_summary(summary, epoch)
+
       def fit(self, X_train: tf.Tensor, X_test: tf.Tensor, y_train: tf.Tensor, y_test: tf.Tensor) -> None:
-          
+          with self._fit_context() as [session, train_writer, test_writer]:
+               self._fit(X_train, X_test, y_train, y_test, session, train_writer, test_writer)
 
       def predict(self, X: tf.Tensor) -> tf.Tensor:
-          
+          self._load_weights()
+          with self._session.graph.as_default():
+               return self._session.run(self._predict_model.y, feed_dict={self._X_predict: X})
+
       def __del__(self) -> None:
           self._session.close()
