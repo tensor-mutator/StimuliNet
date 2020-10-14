@@ -9,6 +9,7 @@ python = "^3.6.8"
 tensorflow-gpu = "2.2.0"
 tensorflow-addons = "0.10.0"
 pypng = "^0.0.20"
+opencv-python = "^4.4.0.44"
 
 [tool.poetry.dev-dependencies]
 
