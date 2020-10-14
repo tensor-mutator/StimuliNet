@@ -16,7 +16,8 @@ from .config import config
 class Pipeline:
 
       def __init__(self, network: Network, schedule: str, img_resolution: Tuple[int, int],
-                   flow_resolution: Tuple[int, int], config: bin = config.DEFAULT) -> None:
+                   flow_resolution: Tuple[int, int], frozen_config: List = None,
+                   config: bin = config.DEFAULT) -> None:
           self._network = network
           self._read_params(schedule)
           self._img_res = img_resolution
@@ -27,6 +28,7 @@ class Pipeline:
           self._local_model = self._generate_local_graph(network)
           self._predict_model = self._generate_target_graph(network)
           self._session = tf.Session(config=self._get_config())
+          self._load_frozen_weights(frozen_config)
           self._model_name = network.__class__.__name__
           self._generate_checkpoint_directory()
 
@@ -48,6 +50,24 @@ class Pipeline:
           self._epoch = params.get("epoch", 10000)
           self._batch_norm = params.get("batch_norm", False)
 
+      @contextmanager
+      def _fit_context(self) -> Generator:
+          self._load_weights()
+          train_writer, test_writer = self._generate_summary_writer()
+          yield self._session, train_writer, test_writer
+          self._save_weights()
+          if train_writer and test_writer:
+             train_writer.close()
+             test_writer.close()
+
+      def _save_weights(self) -> None:
+          if self._config & config.SAVE_WEIGHTS:
+             if getattr(self, "_saver", None) is None:
+                with self._session.graph.as_default():
+                     self._saver = tf.train.Saver(max_to_keep=5)
+             self._session.run(self._update_ops)
+             self._saver.save(self._session, os.path.join(self._model_name, "{}.ckpt".format(self._model_name)))
+
       def _generate_iterator(self) -> tf.data.Iterator:
           dataset = tf.data.Dataset.from_tensor_slices((self._X_placeholder, self._y_placeholder))
           dataset = dataset.shuffle(tf.cast(tf.shape(self._X_placeholder)[0], tf.int64)).batch(self._batch_size).prefetch(1)
@@ -59,6 +79,18 @@ class Pipeline:
                self._get_model(network)
                network.grad = self._optimizer(self._lr, self._beta1, self._beta2, self._epsilon).minimize(network.cost)
           return network
+
+      def _load_frozen_weights(self, frozen_config: List) -> None:
+          self._session.run(tf.train.global_variables_initializer())
+          if frozen_config is None:
+             return
+          for conf in frozen_config:
+              scope, path = conf.items()[0]
+              ckpt_path = tf.train.get_checkpoint_state(path).model_checkpoint_path
+              saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"local/{scope}-Graph/{scope}"))
+              saver.restore(self._session, ckpt_path)
+              saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"target/{scope}-Graph/{scope}"))
+              saver.restore(self._session, ckpt_path)
 
       def _get_model(self, network: Network) -> None:
           X_, y_ = self._iterator.get_next()
@@ -75,6 +107,13 @@ class Pipeline:
           config = tf.ConfigProto()
           config.gpu_options.allow_growth = True
           return config
+
+      def _generate_summary_writer(self) -> Any:
+          if self._config & config.LOSS_EVENT:
+             train_writer = tf.summary.FileWriter(os.path.join(self._model_name, "{} TRAIN EVENTS".format(self._model_name)), self._session.graph)
+             test_writer = tf.summary.FileWriter(os.path.join(self._model_name, "{} TEST EVENTS".format(self._model_name)), self._session.graph)
+             return train_writer, test_writer
+          return None, None
 
       @property
       def _update_ops(self) -> tf.group:
