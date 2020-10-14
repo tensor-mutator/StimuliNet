@@ -89,4 +89,4 @@ class FlowNet2(Network):
           flow0_labels = tf.image.resize(flow, [flow0.shape[1], flow0.shape[2]])
           loss = Mutator.average_endpoint_error(flow0_labels, flow0)
           tf.losses.add_loss(loss)
-          return dict(input=flow, output=tf.losses.get_total_loss())
+          return dict(input=flow, output=tf.losses.get_total_loss(add_regularization_losses=True))
