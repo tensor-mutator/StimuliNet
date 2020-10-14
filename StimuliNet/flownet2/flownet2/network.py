@@ -31,7 +31,7 @@ class Network(metaclass=ABCMeta):
       def get_graph(self, dest: str) -> None:
           ...
 
-      def model(self, X: tf.tensor, y: tf.Tensor = None) -> None:
+      def model(self, X: tf.Tensor, y: tf.Tensor = None) -> None:
           if y is None:
                self.y = tf.import_graph_def(self.graph_def,
                                             input_map={self.inputs[0].name: X[:, 0, :, :, :],
