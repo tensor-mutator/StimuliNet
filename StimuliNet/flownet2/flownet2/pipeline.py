@@ -13,6 +13,7 @@ import numpy as np
 from tqdm import tqdm
 from glob import glob
 from typing import Dict, List, Generator, Any
+import cv2
 from .network import Network
 from .exceptions import *
 from .config import config
@@ -168,14 +169,18 @@ class Pipeline:
           def run_(session, total_loss, train=True) -> List:
               if train:
                  _, loss = session.run([self._local_model.grad, self._local_model.cost])
+                 flow_payload = None
               else:
-                 loss = session.run(self._local_model.cost)
+                 loss, flow, src_img, dest_img = session.run([self._local_model.cost, self._local_model.y, self._local_model.src_img,
+                                                              self._local_model.dest_img])
+                 flow_payload = [src_img, dest_img, flow]
               total_loss += loss
-              return total_loss
+              return total_loss, flow_payload
           n_batches_train = np.ceil(np.size(y_train, axis=0)/self._batch_size)
           n_batches_test = np.ceil(np.size(y_test, axis=0)/self._batch_size)
           with session.graph.as_default():
                for epoch in range(self._n_epoch):
+                   self._count = 0
                    train_loss = 0
                    test_loss = 0
                    session.run(self._iterator.initializer, feed_dict={self._X_placeholder: X_train,
@@ -183,7 +188,7 @@ class Pipeline:
                    with tqdm(total=len(y_train)) as progress:
                         try:
                            while True:
-                                 train_loss = run_(session, train_loss)
+                                 train_loss, _ = run_(session, train_loss)
                                  progress.update(self._batch_size)
                         except tf.errors.OutOfRangeError:
                            ...
@@ -192,13 +197,28 @@ class Pipeline:
                    with tqdm(total=len(y_test)) as progress:
                         try:
                            while True:
-                                 test_loss = run_(session, test_loss, train=False)
+                                 test_loss, flow_payload = run_(session, test_loss, train=False)
+                                 self._save_flow(epoch+1, *flow_payload)
                                  progress.update(self._batch_size)
                         except tf.errors.OutOfRangeError:
                            ...
                    self._print_summary(epoch+1, train_loss, n_batches_train, test_loss, n_batches_test)
                    self._save_summary(train_writer, epoch=epoch+1, loss=train_loss, n_batches=n_batches_train)
                    self._save_summary(test_writer, epoch=epoch+1, loss=test_loss, n_batches=n_batches_test)
+
+      def _save_flow(self, epoch: int, src_img: np.ndarray, dest_img: np.ndarray, flow: np.ndarray) -> None:
+          if self._config & config.SAVE_FLOW:
+             path = os.path.join(self._flow_dir, "EPOCH {}".format(str(epoch).zfill(10)))
+             if not os.path.exists(path):
+                os.mkdir(path)
+             for src_img_, dest_img_, flow_ in zip(src_img, dest_img, flow):
+                 self._count += 1
+                 final_path = os.path.join(path, "flow.{}".format(str(self._count).zfill(10)))
+                 os.mkdir(final_path)
+                 cv2.imwrite(os.path.join(final_path, "src.png"), src_image_)
+                 cv2.imwrite(os.path.join(final_path, "dest.png"), dest_img_)
+                 cv2.imwrite(os.path.join(final_path, "flow.png"), flow_to_image(flow_))
+                 write_flow(flow_, os.path.join(final_path, "flow.flo"))
 
       def _print_summary(self, epoch: int, train_loss: float, n_batches_train: int,
                          test_loss: float, n_batches_test: int) -> None:
