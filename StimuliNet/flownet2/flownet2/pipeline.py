@@ -30,7 +30,7 @@ class Pipeline:
           self._session = tf.Session(config=self._get_config())
           self._load_frozen_weights(frozen_config)
           self._model_name = network.__class__.__name__
-          self._generate_checkpoint_directory()
+          self._checkpoint_dir = self._generate_checkpoint_directory()
 
       def _read_params(self, schedule: str) -> None:
           with open(os.path.join(os.path.split(__file__)[0], "flownet2.hyperparams"), "r") as f_obj:
@@ -60,18 +60,31 @@ class Pipeline:
              train_writer.close()
              test_writer.close()
 
+      def _load_weights(self) -> None:
+          if self._config & config.LOAD_WEIGHTS:
+             with self._session.graph.as_default():
+                  self._saver = tf.train.Saver(max_to_keep=5)
+                  if glob(os.path.join(self._checkpoint_dir, "{}.ckpt.*".format(self._model_name))):
+                     ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
+                     self._saver.restore(self._session, ckpt.model_checkpoint_path)
+
       def _save_weights(self) -> None:
-          if self._config & config.SAVE_WEIGHTS:
-             if getattr(self, "_saver", None) is None:
-                with self._session.graph.as_default():
-                     self._saver = tf.train.Saver(max_to_keep=5)
-             self._session.run(self._update_ops)
-             self._saver.save(self._session, os.path.join(self._model_name, "{}.ckpt".format(self._model_name)))
+          if getattr(self, "_saver", None) is None:
+             with self._session.graph.as_default():
+                  self._saver = tf.train.Saver(max_to_keep=5)
+          self._session.run(self._update_ops)
+          self._saver.save(self._session, os.path.join(self._checkpoint_dir, "{}.ckpt".format(self._model_name)))
 
       def _generate_iterator(self) -> tf.data.Iterator:
           dataset = tf.data.Dataset.from_tensor_slices((self._X_placeholder, self._y_placeholder))
           dataset = dataset.shuffle(tf.cast(tf.shape(self._X_placeholder)[0], tf.int64)).batch(self._batch_size).prefetch(1)
           return dataset.make_initializable_iterator()
+
+      def _generate_checkpoint_directory(self) -> str:
+          dir = os.path.join(os.path.split(__file__)[0], "weights")
+          if not os.path.exists(dir):
+             os.mkdir(dir)
+          return dir
 
       def _generate_local_graph(self, network: Network) -> Network:
           with tf.variable_scope("local"):
