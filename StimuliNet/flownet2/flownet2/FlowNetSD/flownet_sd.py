@@ -129,4 +129,4 @@ class FlowNetSD(Network):
           flow2_labels = tf.image.resize(flow, [flow2.shape[1], flow2.shape[2]])
           losses.append(Mutator.average_endpoint_error(flow2_labels, flow2))
           loss = tf.losses.compute_weighted_loss(losses, [0.32, 0.08, 0.02, 0.01, 0.005])
-          return dict(input=flow, output=tf.losses.get_total_loss())
+          return dict(input=flow, output=tf.losses.get_total_loss(add_regularization_losses=True))
