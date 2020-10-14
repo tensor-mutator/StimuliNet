@@ -43,3 +43,4 @@ class Network(metaclass=ABCMeta):
                                                               self.inputs[1].name: X[:, 1, :, :, :],
                                                               self.loss.input.name: y},
                                                   return_elements: [self.loss.output.name, self.outputs[0].name])
+          self.src_img, self.dest_img = self.inputs
