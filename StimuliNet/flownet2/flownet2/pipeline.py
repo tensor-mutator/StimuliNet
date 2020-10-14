@@ -8,10 +8,21 @@ FlowNet 2.0 network
 import tensorflow.compat.v1 as tf
 import os
 import json
-from typing import List
+from contextlib import contextmanager
+import numpy as np
+from tqdm import tqdm
+from glob import glob
+from typing import Dict, List, Generator, Any
 from .network import Network
 from .exceptions import *
 from .config import config
+
+GREEN = "\033[32m"
+MAGENTA = "\033[35m"
+CYAN = "\033[36m"
+DEFAULT = "\033[0m"
+WIPE = "\033[2K"
+UP = "\033[2A"
 
 class Pipeline:
 
@@ -22,6 +33,7 @@ class Pipeline:
           self._read_params(schedule)
           self._img_res = img_resolution
           self._flow_res = flow_resolution
+          self._config = config
           self._X_placeholder = tf.placeholder(shape=(None, 2,) + img_resolution + (3,), dtype=tf.float32)
           self._y_placeholder = tf.placeholder(shape=(None,) + flow_resolution + (2,), dtype=tf.float32)
           self._iterator = self._generate_iterator()
@@ -47,7 +59,7 @@ class Pipeline:
           self._lr = lr_scheduler_callback(step)
           self._optimizer = tf.train.AdamOptimizer
           self._batch_size = params.get("batch_size", 64)
-          self._epoch = params.get("epoch", 10000)
+          self._n_epoch = params.get("epoch", 10000)
           self._batch_norm = params.get("batch_norm", False)
 
       @contextmanager
@@ -94,7 +106,7 @@ class Pipeline:
           return network
 
       def _load_frozen_weights(self, frozen_config: List) -> None:
-          self._session.run(tf.train.global_variables_initializer())
+          self._session.run(tf.global_variables_initializer())
           if frozen_config is None:
              return
           for conf in frozen_config:
@@ -143,6 +155,52 @@ class Pipeline:
              summary.value.add(tag="{} Performance/Epoch - Loss".format(self._model_name), simple_value=loss/n_batches)
           if writer:
              writer.add_summary(summary, epoch)
+
+      def _fit(self, X_train: np.ndarray, X_test: np.ndarray,
+               y_train: np.ndarray, y_test: np.ndarray, session: tf.Session,
+               train_writer: tf.summary.FileWriter, test_writer: tf.summary.FileWriter) -> None:
+          def run_(session, total_loss, train=True) -> List:
+              if train:
+                 _, loss = session.run([self._local_model.grad, self._local_model.cost])
+              else:
+                 loss = session.run(self._local_model.cost)
+              total_loss += loss
+              return total_loss
+          n_batches_train = np.ceil(np.size(y_train, axis=0)/self._batch_size)
+          n_batches_test = np.ceil(np.size(y_test, axis=0)/self._batch_size)
+          with session.graph.as_default():
+               for epoch in range(self._n_epoch):
+                   train_loss = 0
+                   test_loss = 0
+                   session.run(self._iterator.initializer, feed_dict={self._X_placeholder: X_train,
+                                                                      self._y_placeholder: y_train})
+                   with tqdm(total=len(y_train)) as progress:
+                        try:
+                           while True:
+                                 train_loss = run_(session, train_loss)
+                                 progress.update(self._batch_size)
+                        except tf.errors.OutOfRangeError:
+                           ...
+                   session.run(self._iterator.initializer, feed_dict={self._X_placeholder: X_test,
+                                                                      self._y_placeholder: y_test})
+                   with tqdm(total=len(y_test)) as progress:
+                        try:
+                           while True:
+                                 test_loss = run_(session, test_loss, train=False)
+                                 progress.update(self._batch_size)
+                        except tf.errors.OutOfRangeError:
+                           ...
+                   self._print_summary(epoch+1, train_loss, n_batches_train, test_loss, n_batches_test)
+                   self._save_summary(train_writer, epoch=epoch+1, loss=train_loss, n_batches=n_batches_train)
+                   self._save_summary(test_writer, epoch=epoch+1, loss=test_loss, n_batches=n_batches_test)
+
+      def _print_summary(self, epoch: int, train_loss: float, n_batches_train: int,
+                         test_loss: float, n_batches_test: int) -> None:
+          print(f"{UP}\r{WIPE}\n{WIPE}EPOCH: {CYAN}{epoch}{DEFAULT}")
+          print(f"\n\tTraining set:")
+          print(f"\n\t\tLoss: {GREEN}{train_loss/n_batches_train}{DEFAULT}")
+          print(f"\n\tTest set:")
+          print(f"\n\t\tLoss: {MAGENTA}{test_loss/n_batches_test}{DEFAULT}")
 
       def fit(self, X_train: tf.Tensor, X_test: tf.Tensor, y_train: tf.Tensor, y_test: tf.Tensor) -> None:
           with self._fit_context() as [session, train_writer, test_writer]:
