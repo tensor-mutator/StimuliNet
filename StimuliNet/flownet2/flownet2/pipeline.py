@@ -118,7 +118,10 @@ class Pipeline:
              return
           for conf in frozen_config:
               scope, path = conf.items()[0]
-              ckpt_path = tf.train.get_checkpoint_state(path).model_checkpoint_path
+              ckpt = tf.train.get_checkpoint_state(path)
+              if ckpt is None:
+                 raise WeightsNotFoundError("weights not found for scope: {}".format(scope))
+              ckpt_path = ckpt.model_checkpoint_path
               saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"local/{scope}-Graph/{scope}"))
               saver.restore(self._session, ckpt_path)
               saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"target/{scope}-Graph/{scope}"))
