@@ -74,7 +74,8 @@ class Mutator(object):
 
             @staticmethod
             def Conv2D(filters: int, kernel_size: Tuple[int, int], strides: Tuple[int, int] = (1, 1),
-                       batch_norm: bool = True, activation: bool = True, name: str = None) -> Callable:
+                       batch_norm: bool = True, activation: bool = True, name: str = None,
+                       kernel_regularizer: tf.keras.regularizers.l2 = None)) -> Callable:
                 if name:
                    if activation:
                       Mutator._set_name_to_instance(name, f'{name}/LeakyRelu')
@@ -86,7 +87,7 @@ class Mutator(object):
                 def _op(input_tensor: tf.Tensor) -> tf.Tensor:
                     _name = name if not batch_norm and not activation else None
                     tensor_out = layers.Conv2D(filters=filters, kernel_size=kernel_size, strides=strides, name=_name,
-                                               trainable=Mutator.trainable)(input_tensor)
+                                               trainable=Mutator.trainable, kernel_regularizer=kernel_regularizer)(input_tensor)
                     if batch_norm:
                        _name = name if not activation else None
                        tensor_out = layers.BatchNormalization(trainable=Mutator.trainable, name=_name)(tensor_out)
@@ -113,19 +114,22 @@ class Mutator(object):
                 return _op
 
             @staticmethod
-            def Conv2DFlow(name: str = None, scale: float = None, resize: Tuple[int, int] = None) -> Callable:
+            def Conv2DFlow(name: str = None, scale: float = None, resize: Tuple[int, int] = None,
+                           kernel_regularizer: tf.keras.regularizers.l2 = None) -> Callable:
                 if name and (scale or resize):
                    Mutator._set_name_to_instance(name, name)
                 def _op(input_tensor: tf.Tensor) -> tf.Tensor:
                     if scale or resize:
-                       tensor_out = Mutator.layers.Conv2D(2, (3, 3), batch_norm=False, activation=False)(Mutator.pad(input_tensor))
+                       tensor_out = Mutator.layers.Conv2D(2, (3, 3), batch_norm=False, activation=False,
+                                                          kernel_regularizer=kernel_regularizer)(Mutator.pad(input_tensor))
                        if scale:
                           _name = name if not resize else None
                           tensor_out = tf.multiply(tensor_out, scale, name=_name)
                        if resize:
                           tensor_out = tf.image.resize_bilinear(tensor_out, resize, align_corners=True, name=name)
                        return tensor_out
-                    return Mutator.layers.Conv2D(2, (3, 3), batch_norm=False, activation=False, name=name)(Mutator.pad(input_tensor))
+                    return Mutator.layers.Conv2D(2, (3, 3), batch_norm=False, activation=False, name=name,
+                                                 kernel_regularizer=kernel_regularizer))(Mutator.pad(input_tensor))
                 return _op
 
             @staticmethod
