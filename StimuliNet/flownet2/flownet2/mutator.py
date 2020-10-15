@@ -14,11 +14,11 @@ class Mutator(object):
 
       trainable: bool = True
       graph = tf.get_default_graph()
-      scope = ""
+      _scope = ""
 
       @classmethod
       def scope(cls, scope: str) -> None:
-          cls.scope += "{}/".format(scope)
+          cls._scope += "{}/".format(scope)
 
       @classmethod
       def set_graph(cls, graph: tf.Graph) -> None:
@@ -56,7 +56,7 @@ class Mutator(object):
           if not getattr(inst, '_names', None):
              setattr(inst, '_names', dict())
           names = getattr(inst, '_names')
-          names[name] = f'{scope}/{op_name}' if cls.scope != "" else op_name
+          names[name] = f'{cls._scope}/{op_name}' if cls._scope != "" else op_name
           setattr(inst, '_names', names)
 
       class layers:
