@@ -56,7 +56,7 @@ class Mutator(object):
           if not getattr(inst, '_names', None):
              setattr(inst, '_names', dict())
           names = getattr(inst, '_names')
-          names[name] = f'{cls._scope}/{op_name}' if cls._scope != "" else op_name
+          names[name] = f'{cls._scope}{op_name}' if cls._scope != "" else op_name
           setattr(inst, '_names', names)
 
       class layers:
