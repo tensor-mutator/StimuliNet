@@ -25,28 +25,21 @@ class FlowNetSD(Network):
           self._scope = 'FlowNetSD'
           self._build_graph_with_scope()
 
-      def _build_graph_with_scope(self) -> tf.Graph:
-          self.graph = tf.Graph()
-          with self.graph.as_default():
-               with tf.variable_scope(self._scope):
-                    self._build_graph()
-                    if self._trainable:
-                       loss_input_output = self._build_loss_ops(self._flow)
-                       self.loss = type('loss', (object,), loss_input_output)
-          return self.graph
+      def _build_graph_with_scope(self) -> None:
+          with tf.variable_scope(self._scope):
+               self._build_graph()
+               if self._trainable:
+                  loss_input_output = self._build_loss_ops(self._flow)
+                  self.loss = type('loss', (object,), loss_input_output)
 
       def _build_graph(self) -> None:
-          Mutator.set_graph(self.graph)
           Mutator.trainable = self._trainable
+          Mutator.scope(self._scope)
           self._image_1 = tf.placeholder(dtype=tf.float32, shape=(None,) + self._image + (3,), name='image_1_sd')
           self._image_2 = tf.placeholder(dtype=tf.float32, shape=(None,) + self._image + (3,), name='image_2_sd')
           self._input = tf.concat([self._image_1, self._image_2], axis=3, name='input_sd')
           self._downsampling()
           self._upsampling()
-
-      @property
-      def graph_def(self) -> tf.GraphDef:
-          return self.graph.as_graph_def()
 
       def _downsampling(self) -> None:
           conv0 = Mutator.layers.Conv2D(filters=64, kernel_size=(3, 3), batch_norm=self._batch_norm,
@@ -109,7 +102,7 @@ class FlowNetSD(Network):
           return [Mutator.get_operation(self._names.get('flow2'))]
 
       def get_graph(self, dest: str = os.getcwd()) -> None:
-          writer = tf.summary.FileWriter(dest, graph=self.graph)
+          writer = tf.summary.FileWriter(dest, graph=tf.get_default_graph())
           writer.close()
 
       def _build_loss_ops(self, flow) -> tf.Tensor:
