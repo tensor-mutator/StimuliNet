@@ -22,7 +22,7 @@ class Mutator(object):
 
       @classmethod
       def reset_scope(cls, scope: str) -> None:
-          parent_scope = cls._scope.split(scope)[0]
+          parent_scope = cls._scope.split("{}/".format(scope))[0]
           cls._scope = "{}{}/".format(parent_scope, scope)
 
       @classmethod
