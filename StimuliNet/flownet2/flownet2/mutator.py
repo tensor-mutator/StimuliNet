@@ -21,6 +21,10 @@ class Mutator(object):
           cls._scope += "{}/".format(scope)
 
       @classmethod
+      def reset_scope(cls, scope: str) -> None:
+          cls._scope = scope
+
+      @classmethod
       def set_graph(cls, graph: tf.Graph) -> None:
           cls.graph = graph
 
