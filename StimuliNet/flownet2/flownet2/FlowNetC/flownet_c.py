@@ -38,23 +38,16 @@ class FlowNetC(Network):
               return conv3
           return create_fusion_stream
 
-      def _build_graph_with_scope(self) -> tf.Graph:
-          self.graph = tf.Graph()
-          with self.graph.as_default():
-               with tf.variable_scope(self._scope):
-                    self._build_graph()
-                    if self._trainable:
-                       loss_input_output = self._build_loss_ops(self._flow)
-                       self.loss = type('loss', (object,), loss_input_output)
-          return self.graph
-
-      @property
-      def graph_def(self) -> tf.GraphDef:
-          return self.graph.as_graph_def()
+      def _build_graph_with_scope(self) -> None:
+          with tf.variable_scope(self._scope):
+               self._build_graph()
+               if self._trainable:
+                  loss_input_output = self._build_loss_ops(self._flow)
+                  self.loss = type('loss', (object,), loss_input_output)
 
       def _build_graph(self) -> None:
-          Mutator.set_graph(self.graph)
           Mutator.trainable = self._trainable
+          Mutator.scope(self._scope)
           self._image_1 = tf.placeholder(shape=(None,) + self._image + (3,), dtype=tf.float32, name='image_1_c')
           self._image_2 = tf.placeholder(shape=(None,) + self._image + (3,), dtype=tf.float32, name='image_2_c')
           self._downsampling()
