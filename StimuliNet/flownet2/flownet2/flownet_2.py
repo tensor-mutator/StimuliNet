@@ -27,40 +27,40 @@ class FlowNet2(Network):
           self._scope = 'FlowNet2.0'
           self._build_graph_with_scope()
 
-      def _build_graph_with_scope(self) -> tf.Graph:
-          self.graph = tf.Graph()
-          with self.graph.as_default():
-               with tf.variable_scope(self._scope):
-                    self._build_graph()
-                    if self._trainable:
-                       loss_input_output = self._build_loss_ops(self._flow)
-                       self.loss = type('loss', (object,), loss_input_output)
-          return self.graph
-
-      @property
-      def graph_def(self) -> tf.GraphDef:
-          return self.graph.as_graph_def()
+      def _build_graph_with_scope(self) -> None:
+          with tf.variable_scope(self._scope):
+               self._build_graph()
+               if self._trainable:
+                  loss_input_output = self._build_loss_ops(self._flow)
+                  self.loss = type('loss', (object,), loss_input_output)
 
       def _build_graph(self) -> None:
-          Mutator.set_graph(self.graph)
           Mutator.trainable = self._trainable
-          self._image_1 = tf.placeholder(shape=(None,) + self._image + (3,), dtype=tf.float32, name='image_1_2')
-          self._image_2 = tf.placeholder(shape=(None,) + self._image + (3,), dtype=tf.float32, name='image_2_2')
+          Mutator.scope(self._scope)
+          #self._image_1 = tf.placeholder(shape=(None,) + self._image + (3,), dtype=tf.float32, name='image_1_2')
+          #self._image_2 = tf.placeholder(shape=(None,) + self._image + (3,), dtype=tf.float32, name='image_2_2')
           flownet_css = FlowNetCSS(self._image, self._flow, self._l2, self._batch_norm, trainable=False)
+          Mutator.reset_scope(self._scope)
           flownet_sd = FlowNetSD(self._image, self._flow, self._l2, self._batch_norm, trainable=False)
-          flownet_css_patch = tf.import_graph_def(flownet_css.graph_def,
-                                                  input_map={x.name: [self._image_1, self._image_2][i] for i, x in enumerate(flownet_css.inputs)},
-                                                  return_elements=list(map(lambda x: x.name, flownet_css.outputs)), name="FlowNetCSS-Graph")
-          flownet_sd_patch = tf.import_graph_def(flownet_sd.graph_def,
-                                                 input_map={x.name: [self._image_1, self._image_2][i] for i, x in enumerate(flownet_sd.inputs)},
-                                                 return_elements=list(map(lambda x: x.name, flownet_sd.outputs)), name="FlowNetSD-Graph")
+          flownet_css_patch = flownet_css.outputs
+          flownet_sd_patch = flownet_sd.outputs
+          flownet_css.inputs[0], flownet_css.inputs[1] = flownet_sd.inputs[0], flownet_sd.inputs[1]
+          self._image_1, self._image_2 = flownet_css.inputs[0], flownet_css.inputs[1]
+          #flownet_css_patch = tf.import_graph_def(flownet_css.graph_def,
+          #                                        input_map={x.name: [self._image_1, self._image_2][i] for i, x in enumerate(flownet_css.inputs)},
+          #                                        return_elements=list(map(lambda x: x.name, flownet_css.outputs)), name="FlowNetCSS-Graph")
+          #flownet_sd_patch = tf.import_graph_def(flownet_sd.graph_def,
+          #                                       input_map={x.name: [self._image_1, self._image_2][i] for i, x in enumerate(flownet_sd.inputs)},
+          #                                       return_elements=list(map(lambda x: x.name, flownet_sd.outputs)), name="FlowNetSD-Graph")
           flownet_fusion_input_tensor = self._compute_input_tensor_for_flownet_fusion(self._image_1, self._image_2,
                                                                                       flownet_css_patch[0], flownet_sd_patch[0])
           self._flownet_fusion = FlowNetFusion(self._image, self._l2, self._batch_norm, trainable=self._trainable)
-          self._flownet_2_patch = tf.import_graph_def(self._flownet_fusion.graph_def,
-                                                      input_map={self._flownet_fusion.inputs[0].name: flownet_fusion_input_tensor},
-                                                      return_elements=list(map(lambda x: x.name, self._flownet_fusion.outputs)),
-                                                      name="FlowNetFusion-Graph")
+          self._flownet_fusion.inputs[0] = flownet_fusion_input_tensor
+          self._flownet_2_patch = self._flownet_fusion.outputs
+          #self._flownet_2_patch = tf.import_graph_def(self._flownet_fusion.graph_def,
+          #                                            input_map={self._flownet_fusion.inputs[0].name: flownet_fusion_input_tensor},
+          #                                            return_elements=list(map(lambda x: x.name, self._flownet_fusion.outputs)),
+          #                                            name="FlowNetFusion-Graph")
 
       def _compute_input_tensor_for_flownet_fusion(self, image_1: tf.Tensor, image_2: tf.Tensor, 
                                                    flow_out_css: tf.Tensor, flow_out_sd: tf.Tensor) -> tf.Tensor:
@@ -82,7 +82,7 @@ class FlowNet2(Network):
           return [self._flownet_2_patch[0]]
 
       def get_graph(self, dest: str = os.getcwd()) -> None:
-          writer = tf.summary.FileWriter(dest, graph=self.graph)
+          writer = tf.summary.FileWriter(dest, graph=tf.get_default_graph())
           writer.close()
 
       def _build_loss_ops(self, flow) -> tf.Tensor:
