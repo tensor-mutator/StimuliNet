@@ -125,9 +125,9 @@ class Pipeline:
               if ckpt is None:
                  raise WeightsNotFoundError("weights not found for scope: {}".format(scope))
               ckpt_path = ckpt.model_checkpoint_path
-              saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"local/{scope}-Graph/{scope}"))
+              saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"local/{scope}"))
               saver.restore(self._session, ckpt_path)
-              saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"target/{scope}-Graph/{scope}"))
+              saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"target/{scope}"))
               saver.restore(self._session, ckpt_path)
 
       def _get_model(self, network: Network) -> None:
