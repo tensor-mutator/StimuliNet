@@ -21,9 +21,12 @@ class Mutator(object):
           cls._scope += "{}/".format(scope)
 
       @classmethod
-      def reset_scope(cls, scope: str) -> None:
-          parent_scope = cls._scope.split("{}/".format(scope))[0]
-          cls._scope = "{}{}/".format(parent_scope, scope)
+      def reset_scope(cls, scope: str = None) -> None:
+          if scope:
+             parent_scope = cls._scope.split("{}/".format(scope))[0]
+             cls._scope = "{}{}/".format(parent_scope, scope)
+          else:
+             cls.scope(scope)
 
       @classmethod
       def set_graph(cls, graph: tf.Graph) -> None:
