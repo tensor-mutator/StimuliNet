@@ -29,14 +29,14 @@ def _get_X(resolution: Tuple[int, int], rendering: str) -> np.ndarray:
 def _read_flow(filename: str) -> np.ndarray:
     with open(filename, 'rb') as f:
          magic = np.fromfile(f, np.float32, count=1)
-    data2d = None
-    if 202021.25 != magic:
-        print("Magic number incorrect. Invalid .flo file")
-    else:
-        w = np.fromfile(f, np.int32, count=1)
-        h = np.fromfile(f, np.int32, count=1)
-        data2d = np.fromfile(f, np.float32, count=2 * w * h)
-        data2d = np.resize(data2d, (h[0], w[0], 2))
+         data2d = None
+         if 202021.25 != magic:
+            print("Magic number incorrect. Invalid .flo file")
+         else:
+            w = np.fromfile(f, np.int32, count=1)
+            h = np.fromfile(f, np.int32, count=1)
+            data2d = np.fromfile(f, np.float32, count=2 * w * h)
+            data2d = np.resize(data2d, (h[0], w[0], 2))
     return data2d
 
 def _get_y(resolution: Tuple[int, int]) -> np.ndarray:
