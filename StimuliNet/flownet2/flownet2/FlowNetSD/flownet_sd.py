@@ -14,10 +14,12 @@ from ..network import Network
 
 class FlowNetSD(Network):
 
-      def __init__(self, image: Tuple[int, int], flow: Tuple[int, int], batch_norm: bool = True, trainable: bool = True) -> None:
+      def __init__(self, image: Tuple[int, int], flow: Tuple[int, int], l2: float,
+                   batch_norm: bool = True, trainable: bool = True) -> None:
           self._batch_norm = batch_norm
           self._image = image
           self._flow = flow
+          self._l2 = l2
           self._trainable = trainable
           self.flow_scale = 20
           self._scope = 'FlowNetSD'
@@ -95,7 +97,8 @@ class FlowNetSD(Network):
           deconv2 = Mutator.layers.Deconv(filters=64, name='deconv2')(fuse3)
           fuse2 = tf.concat([Mutator.get_operation(self._names.get('conv2_1')), deconv2, flow3_up], axis=3, name='fuse2')
           interconv2 = Mutator.layers.Conv2DInter(filters=64, name='interconv2')(fuse2)
-          flow2 = Mutator.layers.Conv2DFlow(name='flow2', scale=0.05, resize=self._image)(interconv2)
+          flow2 = Mutator.layers.Conv2DFlow(name='flow2', scale=0.05, resize=self._image, 
+                                            kernel_regularizer=tf.keras.regularizers.l2(self._l2))(interconv2)
 
       @property
       def inputs(self) -> Sequence[tf.Tensor]:
