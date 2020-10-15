@@ -23,23 +23,16 @@ class FlowNetFusion(Network):
           self._scope = 'FlowNetFusion'
           self._build_graph_with_scope()
 
-      def _build_graph_with_scope(self) -> tf.Graph:
-          self.graph = tf.Graph()
-          with self.graph.as_default():
-               with tf.variable_scope(self._scope):
-                    self._build_graph()
-          return self.graph
+      def _build_graph_with_scope(self) -> None:
+          with tf.variable_scope(self._scope):
+               self._build_graph()
 
       def _build_graph(self) -> None:
-          Mutator.set_graph(self.graph)
           Mutator.trainable = self._trainable
+          Mutator.scope(self._scope)
           self._input = tf.placeholder(dtype=tf.float32, shape=(None, ) + self._image + (11,), name='fusion_input')
           self._downsampling()
           self._upsampling()
-
-      @property
-      def graph_def(self) -> tf.GraphDef:
-          return self.graph.as_graph_def()
 
       def _downsampling(self) -> None:
           conv0 = Mutator.layers.Conv2D(filters=64, kernel_size=(3, 3), batch_norm=self._batch_norm, name='conv0')(Mutator.pad(self._input))
