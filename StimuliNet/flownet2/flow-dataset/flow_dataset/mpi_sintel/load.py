@@ -45,12 +45,12 @@ def _get_y(resolution: Tuple[int, int]) -> np.ndarray:
     for dir in dirs:
         flows = sorted(glob("{}/*".format(dir)), key=lambda x: int(re.search(r'[0-9]{1,}', x).group()))
         for flow in flows:
-            flow_scaled = np.resize(_read_flow(flow), resolution + (2,))
-            y = np.concatenate([y, np.expand_dims(flow_scaled, axis=0)])
+            flow_arr = np.resize(_read_flow(flow), resolution + (2,)) if resolution else _read_flow(flow)
+            y = np.concatenate([y, np.expand_dims(flow_arr, axis=0)])
     return y
 
-def load(resolution: Tuple[int, int], train_size: float = 0.8, test_size: float = 0.2,
+def load(img_resolution: Tuple[int, int], flow_resolution: Tuple[int, int] = None, train_size: float = 0.8, test_size: float = 0.2,
          rendering: str = "clean") -> List:
-    y = _get_y(resolution)
-    X = _get_X(resolution, rendering)
+    y = _get_y(flow_resolution)
+    X = _get_X(img_resolution, rendering)
     return train_test_split(X, y, train_size=train_size, test_size=test_size)
