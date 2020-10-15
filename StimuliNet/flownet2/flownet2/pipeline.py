@@ -18,6 +18,7 @@ from .network import Network
 from .exceptions import *
 from .config import config
 from .flowkit import write_flow, flow_to_image
+from .mutator import Mutator
 
 GREEN = "\033[32m"
 MAGENTA = "\033[35m"
@@ -108,6 +109,7 @@ class Pipeline:
 
       def _generate_local_graph(self, network: Network) -> Network:
           with tf.variable_scope("local"):
+               Mutator.scope("local")
                network = network(self._img_res, self._flow_res, self._l2, self._batch_norm)
                self._get_model(network)
                network.grad = self._optimizer(self._lr, self._beta1, self._beta2, self._epsilon).minimize(network.cost)
@@ -134,6 +136,8 @@ class Pipeline:
 
       def _generate_target_graph(self, network: Network) -> Network:
           with tf.variable_scope("target"):
+               Mutator.reset_scope()
+               Mutator.scope("target")
                self._X_predict = tf.placeholder(shape=(None, 2,) + self._img_res + (3,), dtype=tf.float32, name="X")
                network = network(self._img_res, self._flow_res, self._l2, self._batch_norm)
                network.model(self._X_predict)
