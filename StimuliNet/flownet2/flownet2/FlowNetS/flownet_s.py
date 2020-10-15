@@ -26,26 +26,19 @@ class FlowNetS(Network):
           self._scope = 'FlowNetS'
           self._build_graph_with_scope()
 
-      def _build_graph_with_scope(self) -> tf.Graph:
-          self.graph = tf.Graph()
-          with self.graph.as_default():
-               with tf.variable_scope(self._scope):
-                    self._build_graph()
-                    if self._trainable:
-                       loss_input_output = self._build_loss_ops(self._flow)
-                       self.loss = type('loss', (object,), loss_input_output)
-          return self.graph
+      def _build_graph_with_scope(self) -> None:
+          with tf.variable_scope(self._scope):
+               self._build_graph()
+               if self._trainable:
+                  loss_input_output = self._build_loss_ops(self._flow)
+                  self.loss = type('loss', (object,), loss_input_output)
 
       def _build_graph(self) -> None:
-          Mutator.set_graph(self.graph)
           Mutator.trainable = self._trainable
+          Mutator.scope(self._scope)
           self._input = tf.placeholder(dtype=tf.float32, shape=(None,) + self._image + (12,), name='input_s')
           self._downsampling()
           self._upsampling()
-
-      @property
-      def graph_def(self) -> tf.GraphDef:
-          return self.graph.as_graph_def()
 
       def _downsampling(self) -> None:
           conv1 = Mutator.layers.Conv2D(filters=64, kernel_size=(7, 7), strides=(2, 2), batch_norm=self._batch_norm,
