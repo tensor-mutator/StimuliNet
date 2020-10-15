@@ -15,9 +15,10 @@ from ..exceptions import *
 
 class FlowNetFusion(Network):
 
-      def __init__(self, image: Tuple[int, int], batch_norm: bool = True, trainable: bool = True) -> None:
+      def __init__(self, image: Tuple[int, int], l2: float, batch_norm: bool = True, trainable: bool = True) -> None:
           self._batch_norm = batch_norm
           self._image = image
+          self._l2 = l2
           self._trainable = trainable
           self._scope = 'FlowNetFusion'
           self._build_graph_with_scope()
@@ -58,7 +59,8 @@ class FlowNetFusion(Network):
           deconv0 = Mutator.layers.Deconv(filters=16, name='deconv0')(fuse1)
           fuse0 = tf.concat([Mutator.get_operation(self._names.get('conv0')), deconv0, flow1_up], axis=3, name='fuse0')
           interconv0 = Mutator.layers.Conv2DInter(filters=16, name='interconv0')(fuse0)
-          flow0 = Mutator.layers.Conv2DFlow(name='flow0', resize=self._image)(interconv0)
+          flow0 = Mutator.layers.Conv2DFlow(name='flow0', resize=self._image,
+                                            kernel_regularizer=tf.keras.regularizers.l2(self._l2))(interconv0)
 
       @property
       def inputs(self) -> Sequence[tf.Tensor]:
