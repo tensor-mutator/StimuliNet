@@ -16,7 +16,7 @@ from ..network import Network
 
 class FlowNetC(Network):
 
-      def __init__(self, image: Tuple[int, int], flow: Tuple[int, int], l2: float
+      def __init__(self, image: Tuple[int, int], flow: Tuple[int, int], l2: float,
                    batch_norm: bool = True, trainable: bool = True) -> None:
           self._image = image
           self._flow = flow
