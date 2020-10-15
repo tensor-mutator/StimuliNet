@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "flownet2"
 version = "0.1.0"
-description = "FlowNet2"
+description = "FlowNet2.0"
 authors = ["Debajyoti Raychaudhuri <draychaudhuri1086@gmail.com>"]
 
 [tool.poetry.dependencies]
@@ -11,6 +11,7 @@ tensorflow-addons = "0.10.0"
 pypng = "^0.0.20"
 opencv-python = "^4.4.0.44"
 tqdm = "^4.50.0"
+flow-dataset = { path = "flow-dataset/" }
 
 [tool.poetry.dev-dependencies]
 
