@@ -75,7 +75,7 @@ class Mutator(object):
             @staticmethod
             def Conv2D(filters: int, kernel_size: Tuple[int, int], strides: Tuple[int, int] = (1, 1),
                        batch_norm: bool = True, activation: bool = True, name: str = None,
-                       kernel_regularizer: tf.keras.regularizers.l2 = None)) -> Callable:
+                       kernel_regularizer: tf.keras.regularizers.l2 = None) -> Callable:
                 if name:
                    if activation:
                       Mutator._set_name_to_instance(name, f'{name}/LeakyRelu')
