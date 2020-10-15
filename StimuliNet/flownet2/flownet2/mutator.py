@@ -129,7 +129,7 @@ class Mutator(object):
                           tensor_out = tf.image.resize_bilinear(tensor_out, resize, align_corners=True, name=name)
                        return tensor_out
                     return Mutator.layers.Conv2D(2, (3, 3), batch_norm=False, activation=False, name=name,
-                                                 kernel_regularizer=kernel_regularizer))(Mutator.pad(input_tensor))
+                                                 kernel_regularizer=kernel_regularizer)(Mutator.pad(input_tensor))
                 return _op
 
             @staticmethod
