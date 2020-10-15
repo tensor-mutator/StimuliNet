@@ -7,6 +7,7 @@
                "batch_norm": false,
                "beta1": 0.9,
                "beta2": 0.999,
-               "epsilon": 1e-08
+               "epsilon": 1e-08,
+               "l2": 0.0004
              }
 }
