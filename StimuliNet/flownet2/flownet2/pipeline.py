@@ -56,6 +56,7 @@ class Pipeline:
           self._beta1 = params.get("beta1", 0.9)
           self._beta2 = params.get("beta2", 0.999)
           self._epsilon = params.get("epsilon", 1e-08)
+          self._l2 = params.get("l2", 0.0004)
           lr_scheduler_callback = tf.keras.optimizers.schedules.PiecewiseConstantDecay(boundaries, learning_rates)
           step = tf.Variable(0, trainable=False)
           self._lr = lr_scheduler_callback(step)
@@ -107,7 +108,7 @@ class Pipeline:
 
       def _generate_local_graph(self, network: Network) -> Network:
           with tf.variable_scope("local"):
-               network = network(self._img_res, self._flow_res, self._batch_norm)
+               network = network(self._img_res, self._flow_res, self._l2, self._batch_norm)
                self._get_model(network)
                network.grad = self._optimizer(self._lr, self._beta1, self._beta2, self._epsilon).minimize(network.cost)
           return network
@@ -134,7 +135,7 @@ class Pipeline:
       def _generate_target_graph(self, network: Network) -> Network:
           with tf.variable_scope("target"):
                self._X_predict = tf.placeholder(shape=(None, 2,) + self._img_res + (3,), dtype=tf.float32, name="X")
-               network = network(self._img_res, self._flow_res, self._batch_norm)
+               network = network(self._img_res, self._flow_res, self._l2, self._batch_norm)
                network.model(self._X_predict)
           return network
 
