@@ -35,7 +35,7 @@ def _read_flow(filename: str) -> np.ndarray:
          else:
             w = np.fromfile(f, np.int32, count=1)
             h = np.fromfile(f, np.int32, count=1)
-            data2d = np.fromfile(f, np.float32, count=2 * w * h)
+            data2d = np.fromfile(f, np.float32, count=2 * w[0] * h[0])
             data2d = np.resize(data2d, (h[0], w[0], 2))
     return data2d
 
