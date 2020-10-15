@@ -54,6 +54,7 @@ class FlowNet2(Network):
           #                                       return_elements=list(map(lambda x: x.name, flownet_sd.outputs)), name="FlowNetSD-Graph")
           flownet_fusion_input_tensor = self._compute_input_tensor_for_flownet_fusion(self._image_1, self._image_2,
                                                                                       flownet_css_patch[0], flownet_sd_patch[0])
+          Mutator.reset_scope(self._scope)
           self._flownet_fusion = FlowNetFusion(self._image, self._l2, self._batch_norm, trainable=self._trainable)
           self._flownet_fusion.inputs[0] = flownet_fusion_input_tensor
           self._flownet_2_patch = self._flownet_fusion.outputs
