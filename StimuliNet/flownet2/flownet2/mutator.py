@@ -13,6 +13,12 @@ from inspect import stack
 class Mutator(object):
 
       trainable: bool = True
+      graph = tf.get_default_graph()
+      scope = ""
+
+      @classmethod
+      def scope(cls, scope: str) -> None:
+          cls.scope += "{}/".format(scope)
 
       @classmethod
       def set_graph(cls, graph: tf.Graph) -> None:
@@ -38,8 +44,8 @@ class Mutator(object):
           endpoint_error = tf.sqrt(tf.reduce_sum(tf.square(predictions - labels), axis=-1, keep_dims=True))
           return tf.reduce_mean(tf.reduce_sum(endpoint_error, axis=[1,2,3]))
 
-      @staticmethod
-      def _set_name_to_instance(name: str, op_name: str) -> None:
+      @classmethod
+      def _set_name_to_instance(cls, name: str, op_name: str) -> None:
           stack_frames = stack()
           frame_idx = 0
           frame_obj = stack_frames[frame_idx][0]
@@ -50,10 +56,7 @@ class Mutator(object):
           if not getattr(inst, '_names', None):
              setattr(inst, '_names', dict())
           names = getattr(inst, '_names')
-          scope = None
-          if getattr(inst, '_scope', None):
-             scope = getattr(inst, '_scope')
-          names[name] = f'{scope}/{op_name}' if scope else op_name
+          names[name] = f'{scope}/{op_name}' if cls.scope != "" else op_name
           setattr(inst, '_names', names)
 
       class layers:
