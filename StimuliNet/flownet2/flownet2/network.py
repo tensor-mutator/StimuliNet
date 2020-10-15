@@ -30,6 +30,6 @@ class Network(metaclass=ABCMeta):
           self.src_img, self.dest_img = self.inputs[0], self.inputs[1]
           self.src_img, self.dest_img = X[:, 0, :, :, :], X[:, 1, :, :, :]
           self.y = self.outputs[0]
-          if y:
-             self.loss.input = y
-             self.cost = self.loss.output
+          #if y:
+          self.loss.input = y
+          self.cost = self.loss.output
