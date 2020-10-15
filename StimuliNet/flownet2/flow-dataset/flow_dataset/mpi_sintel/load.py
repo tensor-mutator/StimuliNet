@@ -26,7 +26,7 @@ def _get_X(resolution: Tuple[int, int], rendering: str) -> np.ndarray:
             X = np.concatenate([X, np.expand_dims(img_packed, axis=0)])
     return X
 
-def _read_flow(filename):
+def _read_flow(filename: str) -> np.ndarray:
     with open(filename, 'rb') as f:
          magic = np.fromfile(f, np.float32, count=1)
     data2d = None
