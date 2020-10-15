@@ -16,9 +16,11 @@ from ..mutator import Mutator
 
 class FlowNetCSS(Network):
 
-      def __init__(self, image: Tuple[int, int], flow: Tuple[int, int], batch_norm: bool = True, trainable: bool = True) -> None:
+      def __init__(self, image: Tuple[int, int], flow: Tuple[int, int], l2: float,
+                   batch_norm: bool = True, trainable: bool = True) -> None:
           self._image = image
           self._flow = flow
+          self._l2 = l2
           self._batch_norm = batch_norm
           self._trainable = trainable
           self._scope = 'FlowNetCSS'
@@ -41,12 +43,12 @@ class FlowNetCSS(Network):
           Mutator.set_graph(self.graph)
           self._image_1 = tf.placeholder(shape=(None,) + self._image + (3,), dtype=tf.float32, name='image_1_css')
           self._image_2 = tf.placeholder(shape=(None,) + self._image + (3,), dtype=tf.float32, name='image_2_css')
-          flownet_cs = FlowNetCS(self._image, self._flow, self._batch_norm, trainable=False)
+          flownet_cs = FlowNetCS(self._image, self._flow, self._l2, self._batch_norm, trainable=False)
           flownet_cs_patch = tf.import_graph_def(flownet_cs.graph_def,
                                                  input_map={x.name: [self._image_1, self._image_2][i] for i, x in enumerate(flownet_cs.inputs)},
                                                  return_elements=list(map(lambda x: x.name, flownet_cs.outputs)), name="FlowNetCS-Graph")
           flownet_s_input_tensor = self._compute_input_tensor_for_flownet_s(self._image_1, self._image_2, flownet_cs_patch[0])
-          flownet_s = FlowNetS(self._image, self._flow, self._batch_norm, trainable=self._trainable)
+          flownet_s = FlowNetS(self._image, self._flow, self._l2, self._batch_norm, trainable=self._trainable)
           if self._trainable:
              self._flow_label = tf.placeholder(dtype=tf.float32, shape=(None,) + self._flow + (2,))
              self._flownet_cs_patch, self._loss = tf.import_graph_def(flownet_s.graph_def,
