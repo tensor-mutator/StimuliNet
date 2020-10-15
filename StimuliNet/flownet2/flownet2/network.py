@@ -11,11 +11,6 @@ import tensorflow.compat.v1 as tf
 from typing import Sequence
 
 class Network(metaclass=ABCMeta):
-
-      @property
-      @abstractmethod
-      def graph_def(self) -> tf.GraphDef:
-          ...
       
       @property
       @abstractmethod
