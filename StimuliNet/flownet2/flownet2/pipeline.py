@@ -203,7 +203,7 @@ class Pipeline:
                         except tf.errors.OutOfRangeError:
                            ...
                    session.run(self._iterator.initializer, feed_dict={self._X_src_placeholder: X_src_test,
-                                                                      self._X_dest_placeholder: X_dest_test
+                                                                      self._X_dest_placeholder: X_dest_test,
                                                                       self._y_placeholder: y_test})
                    with tqdm(total=len(y_test)) as progress:
                         try:
