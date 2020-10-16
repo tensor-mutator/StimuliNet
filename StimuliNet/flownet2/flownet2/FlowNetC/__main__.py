@@ -3,6 +3,7 @@ from argparse import Namespace
 from flow_dataset.mpi_sintel import load
 import sys
 import os
+import re
 from .flownet_c import FlowNetC
 from ..pipeline import Pipeline
 from ..config import config
