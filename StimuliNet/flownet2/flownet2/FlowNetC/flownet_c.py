@@ -95,7 +95,7 @@ class FlowNetC(Network):
 
       @property
       def inputs(self) -> Sequence[tf.Tensor]:
-          return [self._image_1, self._image_2]
+          return [self._image_src, self._image_dest]
 
       @property
       def outputs(self) -> Sequence[tf.Tensor]:
