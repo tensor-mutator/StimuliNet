@@ -15,7 +15,7 @@ from ..exceptions import *
 
 class FlowNetS(Network):
 
-      def __init__(self, flownet_c_patch: tf.Tensor, img_res: Tuple[int, int], l2: float, flow: tf.tensor = None,
+      def __init__(self, flownet_c_patch: tf.Tensor, img_res: Tuple[int, int], l2: float, flow: tf.Tensor = None,
                    batch_norm: bool = True, trainable: bool = True) -> None: 
           self._batch_norm = batch_norm
           self._flownet_c_patch = flownet_c_patch
