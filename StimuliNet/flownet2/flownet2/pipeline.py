@@ -45,7 +45,7 @@ class Pipeline:
           self._predict_model = self._generate_target_graph(network)
           self._session = tf.Session(config=self._get_config())
           self._load_frozen_weights(frozen_config)
-          self._model_name = network.__class__.__name__
+          self._model_name = network.__name__
           self._checkpoint_dir, self._flow_dir = self._generate_checkpoint_directory(checkpoint_path)
 
       def _read_params(self, schedule: str) -> None:
