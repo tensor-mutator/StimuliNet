@@ -8,7 +8,7 @@ from __future__ import print_function, division, absolute_import
 import tensorflow.compat.v1 as tf
 import tensorflow.compat.v1.keras.layers as layers
 from tensorflow_addons.layers import CorrelationCost
-from typing import Tuple, Callable, Sequence
+from typing import Tuple, Callable, Sequence, Dict
 import numpy as np
 import os
 from ..mutator import Mutator
@@ -101,7 +101,7 @@ class FlowNetC(Network):
       def outputs(self) -> Sequence[tf.Tensor]:
           return [Mutator.get_operation(self._names.get('flow2'))]
 
-      def _build_loss_ops(self, flow_in: tf.Tensor) -> tf.Tensor:
+      def _build_loss_ops(self, flow_in: tf.Tensor) -> Dict:
           flow = flow_in * self.flow_scale
           losses = list()
           flow6 = Mutator.get_operation(self._names.get('flow6'))
