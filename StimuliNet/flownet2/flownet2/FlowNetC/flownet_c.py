@@ -16,9 +16,10 @@ from ..network import Network
 
 class FlowNetC(Network):
 
-      def __init__(self, image: Tuple[int, int], flow: Tuple[int, int], l2: float,
+      def __init__(self, image_src: np.ndarray, image_dest: np.ndarray, flow: np.ndarray, l2: float,
                    batch_norm: bool = True, trainable: bool = True) -> None:
-          self._image = image
+          self._image_src = image_src
+          self._image_dest = image_dest
           self._flow = flow
           self._l2 = l2
           self._batch_norm = batch_norm
@@ -48,14 +49,12 @@ class FlowNetC(Network):
       def _build_graph(self) -> None:
           Mutator.trainable = self._trainable
           Mutator.scope(self._scope)
-          self._image_1 = tf.placeholder(shape=(None,) + self._image + (3,), dtype=tf.float32, name='image_1_c')
-          self._image_2 = tf.placeholder(shape=(None,) + self._image + (3,), dtype=tf.float32, name='image_2_c')
           self._downsampling()
           self._upsampling()
 
       def _downsampling(self) -> None:
-          stream1_tensor_out = self._fusion_stream('a')(self._image_1)
-          stream2_tensor_out = self._fusion_stream('b')(self._image_2)
+          stream1_tensor_out = self._fusion_stream('a')(self._image_src)
+          stream2_tensor_out = self._fusion_stream('b')(self._image_dest)
           corr_out = CorrelationCost(pad=20, kernel_size=1, max_displacement=20, stride_1=1, stride_2=2,
                                      data_format="channels_last")([stream1_tensor_out, stream2_tensor_out])
           corr_out = layers.Activation(lambda x: tf.nn.leaky_relu(x, alpha=0.1), trainable=self._trainable, name='correlation')(corr_out)
@@ -105,8 +104,7 @@ class FlowNetC(Network):
           writer = tf.summary.FileWriter(dest, graph=tf.get_default_graph())
           writer.close()
 
-      def _build_loss_ops(self, flow: Tuple[int, int]) -> tf.Tensor:
-          flow = tf.placeholder(dtype=tf.float32, shape=(None,) + flow + (2,))
+      def _build_loss_ops(self, flow: np.ndarray) -> tf.Tensor:
           flow = flow * self.flow_scale
           losses = list()
           flow6 = Mutator.get_operation(self._names.get('flow6'))
