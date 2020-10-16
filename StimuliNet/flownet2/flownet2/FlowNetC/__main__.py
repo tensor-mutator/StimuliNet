@@ -20,8 +20,8 @@ def main(args: NameSpace):
     if args.train:
        resolution = tuple(args.train)
        pipeline = Pipeline(FlowNetC, "DEFAULT", resolution, resolution, path=weights_path, config=config.LOSS_EVENT+config.SAVE_FLOW)
-       X_train, X_test, y_train, y_test = load(resolution, resolution)
-       pipeline.fit(X_train, X_test, y_train, y_test)
+       X_src_train, X_src_test, X_dest_train, X_dest_test, y_train, y_test = load(resolution, resolution)
+       pipeline.fit(X_src_train, X_src_test, X_dest_train, X_dest_test, y_rain, y_test)
     if args.get_graph:
        pipeline = Pipeline(FlowNetC, "DEFAULT", (512, 512), (512, 512), path=weights_path, config=config.LOSS_EVENT+config.SAVE_FLOW)
        pipeline.save_graph()
