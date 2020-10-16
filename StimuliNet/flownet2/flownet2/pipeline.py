@@ -133,7 +133,7 @@ class Pipeline:
 
       def _get_model(self, network: Network) -> Network:
           X_src_, X_dest_, y_ = self._iterator.get_next()
-          return network(X_src_, X_dest_, self._l2, y_, self._batch_norm)
+          return network(X_src_, X_dest_, self._img_res, self._l2, y_, self._batch_norm)
 
       def _generate_target_graph(self, network: Network) -> Network:
           with tf.variable_scope("target"):
@@ -141,7 +141,7 @@ class Pipeline:
                Mutator.scope("target")
                self._X_src_predict = tf.placeholder(shape=(None,) + self._img_res + (3,), dtype=tf.float32, name="X_src")
                self._X_dest_predict = tf.placeholder(shape=(None,) + self._img_res + (3,), dtype=tf.float32, name="X_dest")
-               network = network(self._X_src_predict, self._X_dest_predict, self._l2, batch_norm=self._batch_norm)
+               network = network(self._X_src_predict, self._X_dest_predict, self._img_res, self._l2, batch_norm=self._batch_norm)
           return network
 
       def _get_config(self) -> tf.ConfigProto:
