@@ -9,6 +9,7 @@ from __future__ import print_function, division, absolute_import
 from abc import ABCMeta, abstractmethod
 import tensorflow.compat.v1 as tf
 from typing import Sequence
+import os
 
 class Network(metaclass=ABCMeta):
       
