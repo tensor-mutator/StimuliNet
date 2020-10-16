@@ -19,7 +19,7 @@ def parser() -> ap:
 
 def main(args: Namespace):
     if args.train:
-       frozen_config = [dict(scope="FlowNetC", path=os.path.split(flownet_c.__file__)[0])]
+       frozen_config = [dict(scope="FlowNetC", path=os.path.join(os.path.split(flownet_c.__file__)[0], "weights")]
        resolution = tuple(list(map(lambda x: int(x), re.findall(r'[0-9]{1,}', args.train))))
        pipeline = Pipeline(FlowNetCS, "DEFAULT", resolution, resolution, checkpoint_path=weights_path, frozen_config=frozen_config,
                            config=config.LOSS_EVENT+config.SAVE_FLOW)
