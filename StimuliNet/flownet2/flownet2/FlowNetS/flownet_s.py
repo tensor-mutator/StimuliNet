@@ -42,7 +42,7 @@ class FlowNetS(Network):
 
       def _downsampling(self) -> None:
           conv1 = Mutator.layers.Conv2D(filters=64, kernel_size=(7, 7), strides=(2, 2), batch_norm=self._batch_norm,
-                                 name='conv1')(Mutator.pad(self._flownet_c_patch, 3))
+                                 name='conv1')(Mutator.pad(self._flownet_c_patch, 3, channels=12))
           conv2 = Mutator.layers.Conv2D(filters=128, kernel_size=(5, 5), strides=(2, 2), batch_norm=self._batch_norm,
                                  name='conv2')(Mutator.pad(conv1, 2))
           conv3 = Mutator.layers.Conv2D(filters=256, kernel_size=(5, 5), strides=(2, 2), batch_norm=self._batch_norm,
