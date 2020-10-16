@@ -250,5 +250,8 @@ class Pipeline:
                return self._session.run(self._predict_model.y, feed_dict={self._X_src_predict: X_src,
                                                                           self._X_dest_predict: X_dest})
 
+      def save_graph(self, path: str) -> None:
+          self._local_model.get_graph(path)
+
       def __del__(self) -> None:
           self._session.close()
