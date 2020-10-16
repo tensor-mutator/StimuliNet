@@ -22,9 +22,9 @@ class Network(metaclass=ABCMeta):
       def outputs(self) -> Sequence[tf.Tensor]:
           ...
 
-      @abstractmethod
-      def get_graph(self, dest: str) -> None:
-          ...
+      def get_graph(self, dest: str = os.getcwd()) -> None:
+          writer = tf.summary.FileWriter(dest, graph=tf.get_default_graph())
+          writer.close()
 
       def model(self, X: tf.Tensor, y: tf.Tensor = None) -> None:
           self.src_img, self.dest_img = self.inputs[0], self.inputs[1]
