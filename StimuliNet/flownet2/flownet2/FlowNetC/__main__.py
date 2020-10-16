@@ -11,14 +11,16 @@ weights_path = os.path.split(__file__)[0]
 
 def parser() -> ap:
     parser = ap(add_help=True)
-    parser.add_argument("-graph", "--get-graph", help="dumps an event file with the current graph", required=False)
-    parser.add_argument("-train", "--train", help="starts training the current block", required=False, action="store_true")
+    parser.add_argument("-graph", "--get-graph", help="dumps an event file with the current graph", required=False, action="store_true")
+    parser.add_argument("-train", "--train", help="starts training the current block with the designated resolution", required=False,
+                        action="store_true")
     return parser
 
 def main(args: NameSpace):
     if args.train:
-       pipeline = Pipeline(FlowNetC, "DEFAULT", (512, 512), (512, 512), path=weights_path, config=config.LOSS_EVENT+config.SAVE_FLOW)
-       X_train, X_test, y_train, y_test = load((512, 512), (512, 512))
+       resolution = tuple(args.train)
+       pipeline = Pipeline(FlowNetC, "DEFAULT", resolution, resolution, path=weights_path, config=config.LOSS_EVENT+config.SAVE_FLOW)
+       X_train, X_test, y_train, y_test = load(resolution, resolution)
        pipeline.fit(X_train, X_test, y_train, y_test)
     if args.get_graph:
        pipeline = Pipeline(FlowNetC, "DEFAULT", (512, 512), (512, 512), path-weights_path, config=config.LOSS_EVENT+config.SAVE_FLOW)
