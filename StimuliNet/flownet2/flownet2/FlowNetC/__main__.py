@@ -17,7 +17,7 @@ def parser() -> ap:
 
 def main(args: Namespace):
     if args.train:
-       resolution = tuple(args.train)
+       resolution = tuple(re.findall(r'[0-9]{1,}', args.train))
        pipeline = Pipeline(FlowNetC, "DEFAULT", resolution, resolution, checkpoint_path=weights_path, config=config.LOSS_EVENT+config.SAVE_FLOW)
        X_src_train, X_src_test, X_dest_train, X_dest_test, y_train, y_test = load(resolution, resolution)
        pipeline.fit(X_src_train, X_src_test, X_dest_train, X_dest_test, y_rain, y_test)
