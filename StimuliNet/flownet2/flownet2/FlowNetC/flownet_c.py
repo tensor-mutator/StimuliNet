@@ -16,8 +16,8 @@ from ..network import Network
 
 class FlowNetC(Network):
 
-      def __init__(self, image_src: np.ndarray, image_dest: np.ndarray, img_res: Tuple[int, int],
-                   l2: float, flow: np.ndarray = None, batch_norm: bool = True, trainable: bool = True) -> None:
+      def __init__(self, image_src: tf.Tensor, image_dest: tf.Tensor, img_res: Tuple[int, int],
+                   l2: float, flow: tf.Tensor = None, batch_norm: bool = True, trainable: bool = True) -> None:
           self._image_src = image_src
           self._image_dest = image_dest
           self._img_res = img_res
