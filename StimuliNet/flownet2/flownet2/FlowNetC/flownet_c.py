@@ -101,7 +101,7 @@ class FlowNetC(Network):
       def outputs(self) -> Sequence[tf.Tensor]:
           return [Mutator.get_operation(self._names.get('flow2'))]
 
-      def _build_loss_ops(self, flow_in: np.ndarray) -> tf.Tensor:
+      def _build_loss_ops(self, flow_in: tf.Tensor) -> tf.Tensor:
           flow = flow_in * self.flow_scale
           losses = list()
           flow6 = Mutator.get_operation(self._names.get('flow6'))
