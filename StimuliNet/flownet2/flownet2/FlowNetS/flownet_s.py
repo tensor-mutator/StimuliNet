@@ -86,10 +86,6 @@ class FlowNetS(Network):
       def outputs(self) -> Sequence[tf.Tensor]:
           return [Mutator.get_operation(self._names.get('flow2'))]
       
-      def get_graph(self, dest: str = os.getcwd()) -> None:
-          writer = tf.summary.FileWriter(dest, graph=tf.get_default_graph())
-          writer.close()
-
       def _build_loss_ops(self, flow_in: tf.Tensor) -> Dict:
           flow = flow_in * self.flow_scale
           losses = list()
