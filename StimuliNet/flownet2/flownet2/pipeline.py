@@ -121,7 +121,7 @@ class Pipeline:
           if frozen_config is None:
              return
           for conf in frozen_config:
-              scope, path = conf.items()[0]
+              scope, path = conf["scope"], conf["path"]
               ckpt = tf.train.get_checkpoint_state(path)
               if ckpt is None:
                  raise WeightsNotFoundError("weights not found for scope: {}".format(scope))
