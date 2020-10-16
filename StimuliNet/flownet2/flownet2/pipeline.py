@@ -223,7 +223,7 @@ class Pipeline:
                  self._count += 1
                  final_path = os.path.join(path, "flow.{}".format(str(self._count).zfill(10)))
                  os.mkdir(final_path)
-                 cv2.imwrite(os.path.join(final_path, "src.png"), src_image_)
+                 cv2.imwrite(os.path.join(final_path, "src.png"), src_img_)
                  cv2.imwrite(os.path.join(final_path, "dest.png"), dest_img_)
                  cv2.imwrite(os.path.join(final_path, "flow.png"), flow_to_image(flow_))
                  write_flow(flow_, os.path.join(final_path, "flow.flo"))
