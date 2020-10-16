@@ -12,8 +12,8 @@ weights_path = os.path.split(__file__)[0]
 
 def parser() -> ap:
     parser = ap(add_help=True)
-    parser.add_argument("-graph", "--get-graph", help="dumps an event file with the current graph", required=False, action="store_true")
-    parser.add_argument("-train", "--train", help="starts training the current block with the designated resolution", required=False)
+    parser.add_argument("-graph", "--get-graph", help="dumps an event file with the FlowNetC graph", required=False, action="store_true")
+    parser.add_argument("-train", "--train", help="starts training the FlowNetC block with the designated resolution", required=False)
     return parser
 
 def main(args: Namespace):
