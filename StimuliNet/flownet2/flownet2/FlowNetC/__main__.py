@@ -1,5 +1,5 @@
 from argparse import ArgumentParser as ap
-from argparse import NameSpace
+from argparse import Namespace
 from flow_dataset.mpi_sintel import load
 import sys
 import os
@@ -16,7 +16,7 @@ def parser() -> ap:
                         action="store_true")
     return parser
 
-def main(args: NameSpace):
+def main(args: Namespace):
     if args.train:
        resolution = tuple(args.train)
        pipeline = Pipeline(FlowNetC, "DEFAULT", resolution, resolution, path=weights_path, config=config.LOSS_EVENT+config.SAVE_FLOW)
