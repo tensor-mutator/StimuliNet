@@ -101,8 +101,8 @@ class FlowNetC(Network):
       def outputs(self) -> Sequence[tf.Tensor]:
           return [Mutator.get_operation(self._names.get('flow2'))]
 
-      def _build_loss_ops(self, flow: np.ndarray) -> tf.Tensor:
-          flow = flow * self.flow_scale
+      def _build_loss_ops(self, flow_in: np.ndarray) -> tf.Tensor:
+          flow = flow_in * self.flow_scale
           losses = list()
           flow6 = Mutator.get_operation(self._names.get('flow6'))
           flow6_labels = tf.image.resize(flow, [flow6.shape[1], flow6.shape[2]])
@@ -120,4 +120,4 @@ class FlowNetC(Network):
           flow2_labels = tf.image.resize(flow, [flow2.shape[1], flow2.shape[2]])
           losses.append(Mutator.average_endpoint_error(flow2_labels, flow2))
           loss = tf.losses.compute_weighted_loss(losses, [0.32, 0.08, 0.02, 0.01, 0.005])
-          return dict(input=flow, output=tf.losses.get_total_loss(add_regularization_losses=True))
+          return dict(input=flow_in, output=tf.losses.get_total_loss(add_regularization_losses=True))
