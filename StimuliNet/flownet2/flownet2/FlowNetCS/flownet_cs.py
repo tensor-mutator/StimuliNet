@@ -44,7 +44,7 @@ class FlowNetCS(Network):
           Mutator.reset_scope(self._scope)
           flownet_s = FlowNetS(flownet_s_input_tensor, self._img_res, self._l2, self._flow, self._batch_norm, trainable=self._trainable)
           self._flownet_cs_patch = flownet_s.outputs
-          if self._trainable:
+          if self._trainable and self._flow is not None:
              #self._flow_label = tf.placeholder(dtype=tf.float32, shape=(None,) + self._flow + (2,))
              #self._flow_label = flownet_s.loss.input
              #flownet_s.inputs[0] = flownet_s_input_tensor
