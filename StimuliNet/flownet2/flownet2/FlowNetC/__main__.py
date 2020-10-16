@@ -23,7 +23,7 @@ def main(args: NameSpace):
        X_train, X_test, y_train, y_test = load(resolution, resolution)
        pipeline.fit(X_train, X_test, y_train, y_test)
     if args.get_graph:
-       pipeline = Pipeline(FlowNetC, "DEFAULT", (512, 512), (512, 512), path-weights_path, config=config.LOSS_EVENT+config.SAVE_FLOW)
+       pipeline = Pipeline(FlowNetC, "DEFAULT", (512, 512), (512, 512), path=weights_path, config=config.LOSS_EVENT+config.SAVE_FLOW)
        pipeline.save_graph()
 
 main(parser().parse_args(sys.argv[1:]))
