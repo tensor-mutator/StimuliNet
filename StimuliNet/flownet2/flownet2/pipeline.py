@@ -30,14 +30,15 @@ UP = "\033[2A"
 class Pipeline:
 
       def __init__(self, network: Network, schedule: str, img_resolution: Tuple[int, int],
-                   flow_resolution: Tuple[int, int], frozen_config: List = None,
+                   flow_resolution: Tuple[int, int], checkpoint_path: str, frozen_config: List = None,
                    config: bin = config.DEFAULT) -> None:
           self._network = network
           self._read_params(schedule)
           self._img_res = img_resolution
           self._flow_res = flow_resolution
           self._config = config
-          self._X_placeholder = tf.placeholder(shape=(None, 2,) + img_resolution + (3,), dtype=tf.float32)
+          self._X_src_placeholder = tf.placeholder(shape=(None,) + img_resolution + (3,), dtype=tf.float32)
+          self._X_dest_placeholder = tf.placeholder(shape=(None,) + img_resolution + (3,), dtype=tf.float32)
           self._y_placeholder = tf.placeholder(shape=(None,) + flow_resolution + (2,), dtype=tf.float32)
           self._iterator = self._generate_iterator()
           self._local_model = self._generate_local_graph(network)
@@ -45,7 +46,7 @@ class Pipeline:
           self._session = tf.Session(config=self._get_config())
           self._load_frozen_weights(frozen_config)
           self._model_name = network.__class__.__name__
-          self._checkpoint_dir, self._flow_dir = self._generate_checkpoint_directory()
+          self._checkpoint_dir, self._flow_dir = self._generate_checkpoint_directory(checkpoint_path)
 
       def _read_params(self, schedule: str) -> None:
           with open(os.path.join(os.path.split(__file__)[0], "flownet2.hyperparams"), "r") as f_obj:
@@ -92,17 +93,17 @@ class Pipeline:
           self._saver.save(self._session, os.path.join(self._checkpoint_dir, "{}.ckpt".format(self._model_name)))
 
       def _generate_iterator(self) -> tf.data.Iterator:
-          dataset = tf.data.Dataset.from_tensor_slices((self._X_placeholder, self._y_placeholder))
-          dataset = dataset.shuffle(tf.cast(tf.shape(self._X_placeholder)[0], tf.int64)).batch(self._batch_size).prefetch(1)
+          dataset = tf.data.Dataset.from_tensor_slices((self._X_src_placeholder, self._X_dest_placeholder, self._y_placeholder))
+          dataset = dataset.shuffle(tf.cast(tf.shape(self._y_placeholder)[0], tf.int64)).batch(self._batch_size).prefetch(1)
           return dataset.make_initializable_iterator()
 
-      def _generate_checkpoint_directory(self) -> str:
-          weight_dir = os.path.join(os.path.split(__file__)[0], "weights")
+      def _generate_checkpoint_directory(self, checkpoint_path) -> str:
+          weight_dir = os.path.join(checkpoint_path, "weights")
           if not os.path.exists(weight_dir):
              os.mkdir(weight_dir)
           flow_dir = None
           if self._config & config.SAVE_FLOW:
-             flow_dir = os.path.join(os.path.split(__file__)[0], "flows")
+             flow_dir = os.path.join(checkpoint_path, "flows")
              if not os.path.exists(flow_dir):
                 os.mkdir(flow_dir)
           return weight_dir, flow_dir
@@ -110,9 +111,9 @@ class Pipeline:
       def _generate_local_graph(self, network: Network) -> Network:
           with tf.variable_scope("local"):
                Mutator.scope("local")
-               network = network(self._img_res, self._flow_res, self._l2, self._batch_norm)
-               self._get_model(network)
-               network.grad = self._optimizer(self._lr, self._beta1, self._beta2, self._epsilon).minimize(network.cost)
+               #network = network(self._img_res, self._flow_res, self._l2, self._batch_norm)
+               network = self._get_model(network)
+               network.grad = self._optimizer(self._lr, self._beta1, self._beta2, self._epsilon).minimize(network.loss.output)
           return network
 
       def _load_frozen_weights(self, frozen_config: List) -> None:
@@ -130,17 +131,17 @@ class Pipeline:
               saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"target/{scope}"))
               saver.restore(self._session, ckpt_path)
 
-      def _get_model(self, network: Network) -> None:
-          X_, y_ = self._iterator.get_next()
-          network.model(X_, y_)
+      def _get_model(self, network: Network) -> Network:
+          X_src_, X_dest_, y_ = self._iterator.get_next()
+          return network(X_src_, X_dest_, self._l2, y_, self._batch_norm)
 
       def _generate_target_graph(self, network: Network) -> Network:
           with tf.variable_scope("target"):
                Mutator.reset_scope()
                Mutator.scope("target")
-               self._X_predict = tf.placeholder(shape=(None, 2,) + self._img_res + (3,), dtype=tf.float32, name="X")
-               network = network(self._img_res, self._flow_res, self._l2, self._batch_norm)
-               network.model(self._X_predict)
+               self._X_src_predict = tf.placeholder(shape=(None,) + self._img_res + (3,), dtype=tf.float32, name="X_src")
+               self._X_dest_predict = tf.placeholder(shape=(None,) + self._img_res + (3,), dtype=tf.float32, name="X_dest")
+               network = network(self._X_src_predict, self._X_dest_predict, self._l2, batch_norm=self._batch_norm)
           return network
 
       def _get_config(self) -> tf.ConfigProto:
@@ -171,16 +172,16 @@ class Pipeline:
           if writer:
              writer.add_summary(summary, epoch)
 
-      def _fit(self, X_train: np.ndarray, X_test: np.ndarray,
+      def _fit(self, X_src_train: np.ndarray, X_src_test: np.ndarray, X_dest_train: np.ndarray, X_dest_test: np.ndarray,
                y_train: np.ndarray, y_test: np.ndarray, session: tf.Session,
                train_writer: tf.summary.FileWriter, test_writer: tf.summary.FileWriter) -> None:
           def run_(session, total_loss, train=True) -> List:
               if train:
-                 _, loss = session.run([self._local_model.grad, self._local_model.cost])
+                 _, loss = session.run([self._local_model.grad, self._local_model.loss.output])
                  flow_payload = None
               else:
-                 loss, flow, src_img, dest_img = session.run([self._local_model.cost, self._local_model.y, self._local_model.src_img,
-                                                              self._local_model.dest_img])
+                 loss, flow, src_img, dest_img = session.run([self._local_model.loss.output, self._local_model.outputs[0], self._local_model.inputs[0],
+                                                              self._local_model.inputs[1]])
                  flow_payload = [src_img, dest_img, flow]
               total_loss += loss
               return total_loss, flow_payload
@@ -191,7 +192,8 @@ class Pipeline:
                    self._count = 0
                    train_loss = 0
                    test_loss = 0
-                   session.run(self._iterator.initializer, feed_dict={self._X_placeholder: X_train,
+                   session.run(self._iterator.initializer, feed_dict={self._X_src_placeholder: X_src_train,
+                                                                      self._X_dest_placeholder: X_dest_train,
                                                                       self._y_placeholder: y_train})
                    with tqdm(total=len(y_train)) as progress:
                         try:
@@ -200,7 +202,8 @@ class Pipeline:
                                  progress.update(self._batch_size)
                         except tf.errors.OutOfRangeError:
                            ...
-                   session.run(self._iterator.initializer, feed_dict={self._X_placeholder: X_test,
+                   session.run(self._iterator.initializer, feed_dict={self._X_src_placeholder: X_src_test,
+                                                                      self._X_dest_placeholder: X_dest_test
                                                                       self._y_placeholder: y_test})
                    with tqdm(total=len(y_test)) as progress:
                         try:
@@ -236,14 +239,16 @@ class Pipeline:
           print(f"\n\tTest set:")
           print(f"\n\t\tLoss: {MAGENTA}{test_loss/n_batches_test}{DEFAULT}")
 
-      def fit(self, X_train: tf.Tensor, X_test: tf.Tensor, y_train: tf.Tensor, y_test: tf.Tensor) -> None:
+      def fit(self, X_src_train: np.ndarray, X_src_test: np.ndarray, X_dest_train: np.ndarray, X_dest_test: np.ndarray,
+              y_train: np.ndarray, y_test: np.ndarray) -> None:
           with self._fit_context() as [session, train_writer, test_writer]:
-               self._fit(X_train, X_test, y_train, y_test, session, train_writer, test_writer)
+               self._fit(X_src_train, X_src_test, X_dest_train, X_dest_test, y_train, y_test, session, train_writer, test_writer)
 
-      def predict(self, X: tf.Tensor) -> tf.Tensor:
+      def predict(self, X_src: np.ndarray, X_dest: np.ndarray) -> tf.Tensor:
           self._load_weights()
           with self._session.graph.as_default():
-               return self._session.run(self._predict_model.y, feed_dict={self._X_predict: X})
+               return self._session.run(self._predict_model.y, feed_dict={self._X_src_predict: X_src,
+                                                                          self._X_dest_predict: X_dest})
 
       def __del__(self) -> None:
           self._session.close()
