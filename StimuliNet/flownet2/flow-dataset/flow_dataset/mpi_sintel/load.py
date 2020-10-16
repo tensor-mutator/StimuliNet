@@ -53,4 +53,4 @@ def load(img_resolution: Tuple[int, int], flow_resolution: Tuple[int, int] = Non
          rendering: str = "clean") -> List:
     y = _get_y(flow_resolution)
     X = _get_X(img_resolution, rendering)
-    return train_test_split(X, y, train_size=train_size, test_size=test_size)
+    return train_test_split(X[:, 0, :, :, :], X[:, 1, :, :, :], y, train_size=train_size, test_size=test_size)
