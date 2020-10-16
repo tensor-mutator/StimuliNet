@@ -16,7 +16,7 @@ from ..network import Network
 
 class FlowNetC(Network):
 
-      def __init__(self, image_src: np.ndarray, image_dest: np.ndarray, flow: np.ndarray, l2: float,
+      def __init__(self, image_src: np.ndarray, image_dest: np.ndarray, l2: float, flow: np.ndarray = None,
                    batch_norm: bool = True, trainable: bool = True) -> None:
           self._image_src = image_src
           self._image_dest = image_dest
@@ -42,7 +42,7 @@ class FlowNetC(Network):
       def _build_graph_with_scope(self) -> None:
           with tf.variable_scope(self._scope):
                self._build_graph()
-               if self._trainable:
+               if self._trainable and self._flow is not None:
                   loss_input_output = self._build_loss_ops(self._flow)
                   self.loss = type('loss', (object,), loss_input_output)
 
