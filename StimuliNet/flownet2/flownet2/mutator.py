@@ -33,7 +33,10 @@ class Mutator(object):
           cls.graph = graph
 
       @staticmethod
-      def pad(tensor: tf.Tensor, padding: int = 1) -> tf.Tensor:
+      def pad(tensor: tf.Tensor, channels: int = None, padding: int = 1) -> tf.Tensor:
+          if channels:
+             padded = tf.pad(tensor, [[0, 0], [padding, padding], [padding, padding], [0, 0]])
+             return tf.reshape(padded, [tf.shape(padded)[0], tf.shape(padded)[1], tf.shape(padded)[2], channels])
           return tf.pad(tensor, [[0, 0], [padding, padding], [padding, padding], [0, 0]])
 
       @staticmethod
