@@ -130,7 +130,7 @@ class Pipeline:
                       re_obj = re.search(op_name + r"[0-9_]{0,}", op)
                       if re_obj:
                          sub = re_obj.group()
-                         val = re.search(r"_[0-9]{1,}", sub).group()
+                         val = re.search(r"_[0-9]{1,}", sub).group().replace("_", "")
                          if int(val) - decrement_val == 0:
                             sub_new = sub.replace("_{}".format(val), "")
                          else:
