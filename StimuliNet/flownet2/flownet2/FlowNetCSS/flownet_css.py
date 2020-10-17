@@ -56,7 +56,3 @@ class FlowNetCSS(Network):
       @property
       def outputs(self) -> Sequence[tf.Tensor]:
           return [self._flownet_css_patch[0]]
-
-      def get_graph(self, dest: str = os.getcwd()) -> None:
-          writer = tf.summary.FileWriter(dest, graph=tf.get_default_graph())
-          writer.close()
