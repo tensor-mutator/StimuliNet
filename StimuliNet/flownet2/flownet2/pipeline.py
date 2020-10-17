@@ -268,7 +268,7 @@ class Pipeline:
       def predict(self, X_src: np.ndarray, X_dest: np.ndarray) -> tf.Tensor:
           self._load_weights()
           with self._session.graph.as_default():
-               return self._session.run(self._predict_model.y, feed_dict={self._X_src_predict: X_src,
+               return self._session.run(self._predict_model.outputs[0], feed_dict={self._X_src_predict: X_src,
                                                                           self._X_dest_predict: X_dest})
 
       def save_graph(self, path: str) -> None:
