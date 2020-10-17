@@ -18,7 +18,7 @@ def parser() -> ap:
     parser.add_argument("-train", "--train", help="starts training the FlowNet2.0 block with the designated resolution", required=False)
     return parser
 
-def main(args: Namespace):
+def main(args: Namespace) -> None:
     if args.train:
        frozen_config = [dict(scope="FlowNetCSS", path=os.path.join(os.path.split(flownet_css.__file__)[0], "weights")),
                         dict(scope="FlowNetSD", path=os.path.join(os.path.split(flownet_sd.__file__)[0], "weights"),
