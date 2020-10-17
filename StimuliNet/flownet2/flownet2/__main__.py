@@ -7,8 +7,8 @@ import re
 from .flownet_2 import FlowNet2
 from .FlowNetCSS import flownet_css
 from .FlowNetSD import flownet_sd
-from ..pipeline import Pipeline
-from ..config import config
+from .pipeline import Pipeline
+from .config import config
 
 weights_path = os.path.split(__file__)[0]
 
