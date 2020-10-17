@@ -26,7 +26,7 @@ class FlowNetC(Network):
           self._batch_norm = batch_norm
           self._trainable = trainable
           self.flow_scale = 0.05
-          self._scope = 'FlowNetC'
+          self._scope = "FlowNetC"
           self._build_graph_with_scope()
 
       def _fusion_stream(self, name: str) -> Callable:
