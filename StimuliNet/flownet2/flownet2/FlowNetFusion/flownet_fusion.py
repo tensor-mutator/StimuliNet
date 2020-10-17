@@ -55,7 +55,7 @@ class FlowNetFusion(Network):
           deconv0 = Mutator.layers.Deconv(filters=16, name='deconv0')(fuse1)
           fuse0 = tf.concat([Mutator.get_operation(self._names.get('conv0')), deconv0, flow1_up], axis=3, name='fuse0')
           interconv0 = Mutator.layers.Conv2DInter(filters=16, name='interconv0')(fuse0)
-          flow0 = Mutator.layers.Conv2DFlow(name='flow0', resize=self._image,
+          flow0 = Mutator.layers.Conv2DFlow(name='flow0', resize=self._img_res,
                                             kernel_regularizer=tf.keras.regularizers.l2(self._l2))(interconv0)
 
       @property
@@ -64,4 +64,4 @@ class FlowNetFusion(Network):
 
       @property
       def outputs(self) -> Sequence[tf.Tensor]:
-          return [Mutator.get_operation(self._names.get('flow0'))
+          return [Mutator.get_operation(self._names.get('flow0'))]
