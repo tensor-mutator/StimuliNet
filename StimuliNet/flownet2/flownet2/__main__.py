@@ -21,7 +21,8 @@ def parser() -> ap:
 def main(args: Namespace):
     if args.train:
        frozen_config = [dict(scope="FlowNetCSS", path=os.path.join(os.path.split(flownet_css.__file__)[0], "weights")),
-                        dict(scope="FlowNetSD", path=os.path.join(os.path.split(flownet_sd.__file__)[0], "weights"))]
+                        dict(scope="FlowNetSD", path=os.path.join(os.path.split(flownet_sd.__file__)[0], "weights"),
+                             patch=[dict(op="conv2d", val=37), dict(op="conv2d_transpose", val=24)])]
        resolution = tuple(list(map(lambda x: int(x), re.findall(r'[0-9]{1,}', args.train))))
        pipeline = Pipeline(FlowNet2, "DEFAULT", resolution, resolution, checkpoint_path=weights_path, frozen_config=frozen_config,
                            config=config.LOSS_EVENT+config.SAVE_FLOW)
