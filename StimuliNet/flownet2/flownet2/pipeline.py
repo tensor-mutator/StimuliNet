@@ -82,7 +82,7 @@ class Pipeline:
              with self._session.graph.as_default():
                   var_list_local_to = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"local/{self._model_name}")
                   var_list_target_to = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"target/{self._model_name}")
-                  var_list_from = list(map(lambda x: x.name.replace(":0", ""), var_list_target_to))
+                  var_list_from = list(map(lambda x: x.name.replace(":0", ""), var_list_local_to))
                   if glob(os.path.join(self._checkpoint_dir, "{}.ckpt.*".format(self._model_name))):
                      ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir).model_checkpoint_path
                      saver = tf.train.Saver(var_list=dict(zip(var_list_from, var_list_local_to)))
@@ -93,7 +93,7 @@ class Pipeline:
       def _save_weights(self) -> None:
           self._session.run(self._update_ops)
           with self._session.graph.as_default():
-               saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"target/{self._model_name}"))
+               saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"local/{self._model_name}"))
           saver.save(self._session, os.path.join(self._checkpoint_dir, "{}.ckpt".format(self._model_name)))
 
       def _generate_iterator(self) -> tf.data.Iterator:
@@ -131,7 +131,7 @@ class Pipeline:
               ckpt_path = ckpt.model_checkpoint_path
               var_list_local_to = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"local/{self._model_name}/{scope}")
               var_list_target_to = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"target/{self._model_name}/{scope}")
-              var_list_from = list(map(lambda x: x.name.replace(f"{self._model_name}/", "").replace(":0", ""), var_list_target_to))
+              var_list_from = list(map(lambda x: x.name.replace(f"{self._model_name}/", "").replace(":0", ""), var_list_local_to))
               saver = tf.train.Saver(var_list=dict(zip(var_list_from, var_list_local_to)))
               saver.restore(self._session, ckpt_path)
               saver = tf.train.Saver(var_list=dict(zip(var_list_from, var_list_target_to)))
