@@ -14,12 +14,14 @@ from ..network import Network
 
 class FlowNetSD(Network):
 
-      def __init__(self, image: Tuple[int, int], flow: Tuple[int, int], l2: float,
-                   batch_norm: bool = True, trainable: bool = True) -> None:
-          self._batch_norm = batch_norm
-          self._image = image
+      def __init__(self, image_src: tf.Tensor, image_dest: tf.Tensor, img_res: Tuple[int, int],
+                   l2: float, flow: tf.Tensor = None, batch_norm: bool = True, trainable: bool = True) -> None:
+          self._image_src = image_src
+          self._image_dest = image_dest
+          self._img_res = img_res
           self._flow = flow
           self._l2 = l2
+          self._batch_norm = batch_norm
           self._trainable = trainable
           self.flow_scale = 20
           self._scope = 'FlowNetSD'
@@ -28,16 +30,14 @@ class FlowNetSD(Network):
       def _build_graph_with_scope(self) -> None:
           with tf.variable_scope(self._scope):
                self._build_graph()
-               if self._trainable:
+               if self._trainable and self._flow is not None:
                   loss_input_output = self._build_loss_ops(self._flow)
                   self.loss = type('loss', (object,), loss_input_output)
 
       def _build_graph(self) -> None:
           Mutator.trainable = self._trainable
           Mutator.scope(self._scope)
-          self._image_1 = tf.placeholder(dtype=tf.float32, shape=(None,) + self._image + (3,), name='image_1_sd')
-          self._image_2 = tf.placeholder(dtype=tf.float32, shape=(None,) + self._image + (3,), name='image_2_sd')
-          self._input = tf.concat([self._image_1, self._image_2], axis=3, name='input_sd')
+          self._input = tf.concat([self._image_src, self._image_dest], axis=3, name='input_sd')
           self._downsampling()
           self._upsampling()
 
@@ -95,7 +95,7 @@ class FlowNetSD(Network):
 
       @property
       def inputs(self) -> Sequence[tf.Tensor]:
-          return [self._image_1, self._image_2]
+          return [self._image_src, self._image_dest]
 
       @property
       def outputs(self) -> Sequence[tf.Tensor]:
@@ -105,9 +105,8 @@ class FlowNetSD(Network):
           writer = tf.summary.FileWriter(dest, graph=tf.get_default_graph())
           writer.close()
 
-      def _build_loss_ops(self, flow) -> tf.Tensor:
-          flow = tf.placeholder(dtype=tf.float32, shape=(None,) + flow + (2,))
-          flow = flow * self.flow_scale
+      def _build_loss_ops(self, flow_in: tf.Tensor) -> tf.Tensor:
+          flow = flow_in * self.flow_scale
           losses = list()
           flow6 = Mutator.get_operation(self._names.get('flow6'))
           flow6_labels = tf.image.resize(flow, [flow6.shape[1], flow6.shape[2]])
@@ -125,4 +124,4 @@ class FlowNetSD(Network):
           flow2_labels = tf.image.resize(flow, [flow2.shape[1], flow2.shape[2]])
           losses.append(Mutator.average_endpoint_error(flow2_labels, flow2))
           loss = tf.losses.compute_weighted_loss(losses, [0.32, 0.08, 0.02, 0.01, 0.005])
-          return dict(input=flow, output=tf.losses.get_total_loss(add_regularization_losses=True))
+          return dict(input=flow_in, output=tf.losses.get_total_loss(add_regularization_losses=True))
