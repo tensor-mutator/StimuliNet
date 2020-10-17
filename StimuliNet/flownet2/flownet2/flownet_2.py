@@ -41,7 +41,7 @@ class FlowNet2(Network):
           flownet_css = FlowNetCSS(self._image_src, self._image_dest, self._img_res, self._l2, self._flow, self._batch_norm, trainable=False)
           Mutator.reset_scope(self._scope)
           flownet_sd = FlowNetSD(self._image_src, self._image_dest, self._img_res, self._l2, self._flow, self._batch_norm, trainable=False)
-          flownet_fusion_input_tensor = self._compute_input_tensor_for_flownet_fusion(self._image_1, self._image_2,
+          flownet_fusion_input_tensor = self._compute_input_tensor_for_flownet_fusion(self._image_src, self._image_dest,
                                                                                       flownet_css.outputs[0], flownet_sd.outputs[0])
           Mutator.reset_scope(self._scope)
           self._flownet_fusion = FlowNetFusion(flownet_fusion_input_tensor, self._img_res, self._l2, self._flow, self._batch_norm,
