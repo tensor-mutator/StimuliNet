@@ -25,7 +25,7 @@ class FlowNetCS(Network):
           self._l2 = l2
           self._batch_norm = batch_norm
           self._trainable = trainable
-          self._scope = 'FlowNetCS'
+          self._scope = "FlowNetCS"
           self._build_graph_with_scope()
 
       def _build_graph_with_scope(self) -> None:
