@@ -16,7 +16,7 @@ def parser() -> ap:
     parser.add_argument("-train", "--train", help="starts training the FlowNetSD block with the designated resolution", required=False)
     return parser
 
-def main(args: Namespace):
+def main(args: Namespace) -> None:
     if args.train:
        resolution = tuple(list(map(lambda x: int(x), re.findall(r'[0-9]{1,}', args.train))))
        pipeline = Pipeline(FlowNetSD, "DEFAULT", resolution, resolution, checkpoint_path=weights_path, config=config.LOSS_EVENT+config.SAVE_FLOW)
