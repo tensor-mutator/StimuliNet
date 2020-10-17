@@ -1,0 +1,15 @@
+class COLORS:
+
+      DEFAULT: str = "\033[0m"
+      RED: str = "\033[31m"
+      GREEN: str = "\033[32m"
+      CYAN: str = "\033[36m"
+      MAGENTA: str = "\033[35m"
+      YELLOW: str = "\033[33m"
+      BLUE: str = "\033[34m"
+      BOLD_RED: str = "\033[91m"
+      BOLD_GREEN: str = "\033[92m"
+      BOLD_CYAN: str = "\033[96m"
+      BOLD_MAGENTA: str = "\033[95m"
+      BOLD_YELLOW: str = "\033[93m"
+      BOLD_BLUE: str = "\033[94m"
