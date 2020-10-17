@@ -26,11 +26,3 @@ class Network(metaclass=ABCMeta):
       def get_graph(self, dest: str = os.getcwd()) -> None:
           writer = tf.summary.FileWriter(dest, graph=tf.get_default_graph())
           writer.close()
-
-      def model(self, X: tf.Tensor, y: tf.Tensor = None) -> None:
-          self.src_img, self.dest_img = self.inputs[0], self.inputs[1]
-          self.src_img, self.dest_img = X[:, 0, :, :, :], X[:, 1, :, :, :]
-          self.y = self.outputs[0]
-          #if y:
-          self.loss.input = y
-          self.cost = self.loss.output
