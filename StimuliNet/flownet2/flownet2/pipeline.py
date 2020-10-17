@@ -44,8 +44,8 @@ class Pipeline:
           self._local_model = self._generate_local_graph(network)
           self._predict_model = self._generate_target_graph(network)
           self._session = tf.Session(config=self._get_config())
-          self._load_frozen_weights(frozen_config)
           self._model_name = network.__name__
+          self._load_frozen_weights(frozen_config)
           self._checkpoint_dir, self._flow_dir = self._generate_checkpoint_directory(checkpoint_path)
 
       def _read_params(self, schedule: str) -> None:
@@ -129,8 +129,8 @@ class Pipeline:
               if ckpt is None:
                  raise WeightsNotFoundError("weights not found for scope: {}".format(scope))
               ckpt_path = ckpt.model_checkpoint_path
-              var_list_local_to = [x for x in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"local/{self._model_name}/{scope}")]
-              var_list_target_to = [x for x in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"target/{self._model_name}/{scope}")]
+              var_list_local_to = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"local/{self._model_name}/{scope}")
+              var_list_target_to = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"target/{self._model_name}/{scope}")
               var_list_from = list(map(lambda x: x.name.replace(f"{self._model_name}/", "").replace(":0", ""), var_list_target_to))
               saver = tf.train.Saver(var_list=dict(zip(var_list_from, var_list_local_to)))
               saver.restore(self._session, ckpt_path)
