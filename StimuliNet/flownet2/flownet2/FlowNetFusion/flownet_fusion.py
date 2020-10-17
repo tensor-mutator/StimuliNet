@@ -23,7 +23,7 @@ class FlowNetFusion(Network):
           self._flow = flow
           self._l2 = l2
           self._trainable = trainable
-          self._scope = 'FlowNetFusion'
+          self._scope = "FlowNetFusion"
           self._build_graph_with_scope()
 
       def _build_graph_with_scope(self) -> None:
