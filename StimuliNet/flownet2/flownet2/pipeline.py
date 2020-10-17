@@ -127,7 +127,7 @@ class Pipeline:
                   for op_ in patch:
                       op_name = op_["op"]
                       decrement_val = op_["val"]
-                      re_obj = re.search(r"{}[0-9_]{0,}".format(op_name))
+                      re_obj = re.search(r"{}[0-9_]{0,}".format(op_name), op)
                       if re_obj:
                          sub = re_obj.group()
                          val = re.search(r"[0-9]{1,}", sub).group()
