@@ -80,17 +80,21 @@ class Pipeline:
       def _load_weights(self) -> None:
           if self._config & config.LOAD_WEIGHTS:
              with self._session.graph.as_default():
-                  self._saver = tf.train.Saver(max_to_keep=5)
+                  var_list_local_to = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"local/{self._model_name}")
+                  var_list_target_to = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"target/{self._model_name}")
+                  var_list_from = list(map(lambda x: x.name.replace(":0", ""), var_list_target_to))
                   if glob(os.path.join(self._checkpoint_dir, "{}.ckpt.*".format(self._model_name))):
-                     ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
-                     self._saver.restore(self._session, ckpt.model_checkpoint_path)
+                     ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir).model_checkpoint_path
+                     saver = tf.train.Saver(var_list=dict(zip(var_list_from, var_list_local_to)))
+                     saver.restore(self._session, ckpt)
+                     saver = tf.train.Saver(var_list=dict(zip(var_list_from, var_list_target_to)))
+                     saver.restore(self._session, ckpt)
 
       def _save_weights(self) -> None:
-          if getattr(self, "_saver", None) is None:
-             with self._session.graph.as_default():
-                  self._saver = tf.train.Saver(max_to_keep=5)
           self._session.run(self._update_ops)
-          self._saver.save(self._session, os.path.join(self._checkpoint_dir, "{}.ckpt".format(self._model_name)))
+          with self._session.graph.as_default():
+               saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"target/{self._model_name}"))
+          saver.save(self._session, os.path.join(self._checkpoint_dir, "{}.ckpt".format(self._model_name)))
 
       def _generate_iterator(self) -> tf.data.Iterator:
           dataset = tf.data.Dataset.from_tensor_slices((self._X_src_placeholder, self._X_dest_placeholder, self._y_placeholder))
@@ -111,7 +115,6 @@ class Pipeline:
       def _generate_local_graph(self, network: Network) -> Network:
           with tf.variable_scope("local"):
                Mutator.scope("local")
-               #network = network(self._img_res, self._flow_res, self._l2, self._batch_norm)
                network = self._get_model(network)
                network.grad = self._optimizer(self._lr, self._beta1, self._beta2, self._epsilon).minimize(network.loss.output)
           return network
@@ -126,9 +129,12 @@ class Pipeline:
               if ckpt is None:
                  raise WeightsNotFoundError("weights not found for scope: {}".format(scope))
               ckpt_path = ckpt.model_checkpoint_path
-              saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"local/{scope}"))
+              var_list_local_to = [x for x in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"local/{self._model_name}/{scope}")]
+              var_list_target_to = [x for x in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"target/{self._model_name}/{scope}")]
+              var_list_from = list(map(lambda x: x.name.replace(f"{self._model_name}/", "").replace(":0", ""), var_list_target_to))
+              saver = tf.train.Saver(var_list=dict(zip(var_list_from, var_list_local_to)))
               saver.restore(self._session, ckpt_path)
-              saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"target/{scope}"))
+              saver = tf.train.Saver(var_list=dict(zip(var_list_from, var_list_target_to)))
               saver.restore(self._session, ckpt_path)
 
       def _get_model(self, network: Network) -> Network:
