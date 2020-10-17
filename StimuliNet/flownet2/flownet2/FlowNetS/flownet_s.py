@@ -24,7 +24,7 @@ class FlowNetS(Network):
           self._l2 = l2
           self._trainable = trainable
           self.flow_scale = 0.05
-          self._scope = 'FlowNetS'
+          self._scope = "FlowNetS"
           self._build_graph_with_scope()
 
       def _build_graph_with_scope(self) -> None:
