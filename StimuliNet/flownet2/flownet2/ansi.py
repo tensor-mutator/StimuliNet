@@ -1,4 +1,4 @@
-class COLORS:
+class ANSI:
 
       DEFAULT: str = "\033[0m"
       RED: str = "\033[31m"
@@ -13,3 +13,5 @@ class COLORS:
       BOLD_MAGENTA: str = "\033[95m"
       BOLD_YELLOW: str = "\033[93m"
       BOLD_BLUE: str = "\033[94m"
+      WIPE: str = "\033[2K"
+      UP: str = "\033[2A"
