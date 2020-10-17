@@ -14,6 +14,7 @@ from tqdm import tqdm
 from glob import glob
 from typing import Dict, List, Generator, Any, Tuple
 import cv2
+import re
 from .network import Network
 from .exceptions import *
 from .config import config
@@ -120,11 +121,29 @@ class Pipeline:
           return network
 
       def _load_frozen_weights(self, frozen_config: List) -> None:
+          def patch_ops(ckpt_op_names: List, patch: List) -> List:
+              patched_ops = list()
+              for op in ckpt_op_names:
+                  for op_ in patch:
+                      op_name = op_["op"]
+                      decrement_val = op_["val"]
+                      re_obj = re.search(r"{}[0-9_]{0,}".format(op_name))
+                      if re_obj:
+                         sub = re_obj.group()
+                         val = re.search(r"[0-9]{1,}", sub).group()
+                         if int(val) - decrement_val == 0:
+                            sub_new = sub.replace("_{}".format(val), "")
+                         else:
+                            sub_new = sub.replace(val, str(int(val) - decrement_val))
+                         op = op.replace(sub, sub_new)
+                  patched_ops.append(op)
+              return patched_ops
           self._session.run(tf.global_variables_initializer())
           if frozen_config is None:
              return
           for conf in frozen_config:
               scope, path = conf["scope"], conf["path"]
+              patch = conf.get("patch", None)
               ckpt = tf.train.get_checkpoint_state(path)
               if ckpt is None:
                  raise WeightsNotFoundError("weights not found for scope: {}".format(scope))
@@ -132,6 +151,8 @@ class Pipeline:
               var_list_local_to = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"local/{self._model_name}/{scope}")
               var_list_target_to = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"target/{self._model_name}/{scope}")
               var_list_from = list(map(lambda x: x.name.replace(f"{self._model_name}/", "").replace(":0", ""), var_list_local_to))
+              if patch:
+                 var_list_from = patch_ops(var_list_from, patch)
               saver = tf.train.Saver(var_list=dict(zip(var_list_from, var_list_local_to)))
               saver.restore(self._session, ckpt_path)
               saver = tf.train.Saver(var_list=dict(zip(var_list_from, var_list_target_to)))
