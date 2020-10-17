@@ -15,9 +15,12 @@ from ..exceptions import *
 
 class FlowNetFusion(Network):
 
-      def __init__(self, image: Tuple[int, int], l2: float, batch_norm: bool = True, trainable: bool = True) -> None:
+      def __init__(self, flownet_css_sd_patch: tf.Tensor, img_res: Tuple[int, int], l2: float, flow: tf.Tensor = None,
+                   batch_norm: bool = True, trainable: bool = True) -> None:
           self._batch_norm = batch_norm
-          self._image = image
+          self._flownet_css_sd_patch = flownet_css_sd_patch
+          self._img_res = img_res
+          self._flow = flow
           self._l2 = l2
           self._trainable = trainable
           self._scope = 'FlowNetFusion'
@@ -30,12 +33,12 @@ class FlowNetFusion(Network):
       def _build_graph(self) -> None:
           Mutator.trainable = self._trainable
           Mutator.scope(self._scope)
-          self._input = tf.placeholder(dtype=tf.float32, shape=(None, ) + self._image + (11,), name='fusion_input')
           self._downsampling()
           self._upsampling()
 
       def _downsampling(self) -> None:
-          conv0 = Mutator.layers.Conv2D(filters=64, kernel_size=(3, 3), batch_norm=self._batch_norm, name='conv0')(Mutator.pad(self._input))
+          conv0 = Mutator.layers.Conv2D(filters=64, kernel_size=(3, 3), batch_norm=self._batch_norm,
+                                        name='conv0')(Mutator.pad(self._flownet_css_sd_patch, channels=11, resolution=self._img_res))
           conv1 = Mutator.layers.Conv2D(filters=64, kernel_size=(3, 3), strides=(2, 2), batch_norm=self._batch_norm, name='conv1')(Mutator.pad(conv0))
           conv1_1 = Mutator.layers.Conv2D(filters=128, kernel_size=(3, 3), batch_norm=self._batch_norm, name='conv1_1')(Mutator.pad(conv1))
           conv2 = Mutator.layers.Conv2D(filters=128, kernel_size=(3, 3), strides=(2, 2), batch_norm=self._batch_norm, name='conv2')(Mutator.pad(conv1_1))
@@ -57,15 +60,8 @@ class FlowNetFusion(Network):
 
       @property
       def inputs(self) -> Sequence[tf.Tensor]:
-          return [self._input]
+          return [self._flownet_css_sd_patch]
 
       @property
       def outputs(self) -> Sequence[tf.Tensor]:
-          return [Mutator.get_operation(self._names.get('flow0'))]
-
-      def get_graph(self, dest: str = os.getcwd()) -> None:
-          writer = tf.summary.FileWriter(dest, graph=self.graph)
-          writer.close()
-
-      def model(self, *args, **kwargs) -> None:
-          raise NotTrainableError(f"Model: {self.__class__.__name__} cannot be trained as a separate block")
+          return [Mutator.get_operation(self._names.get('flow0'))
