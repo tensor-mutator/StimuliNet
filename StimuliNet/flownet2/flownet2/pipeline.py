@@ -20,13 +20,7 @@ from .exceptions import *
 from .config import config
 from .flowkit import write_flow, flow_to_image
 from .mutator import Mutator
-
-GREEN = "\033[32m"
-MAGENTA = "\033[35m"
-CYAN = "\033[36m"
-DEFAULT = "\033[0m"
-WIPE = "\033[2K"
-UP = "\033[2A"
+from .ansi import ANSI
 
 class Pipeline:
 
@@ -260,11 +254,11 @@ class Pipeline:
 
       def _print_summary(self, epoch: int, train_loss: float, n_batches_train: int,
                          test_loss: float, n_batches_test: int) -> None:
-          print(f"{UP}\r{WIPE}\n{WIPE}EPOCH: {CYAN}{epoch}{DEFAULT}")
+          print(f"{ANSI.UP}\r{ANSI.WIPE}\n{ANSI.WIPE}EPOCH: {ANSI.CYAN}{epoch}{ANSI.DEFAULT}")
           print(f"\n\tTraining set:")
-          print(f"\n\t\tLoss: {GREEN}{train_loss/n_batches_train}{DEFAULT}")
+          print(f"\n\t\tLoss: {ANSI.GREEN}{train_loss/n_batches_train}{ANSI.DEFAULT}")
           print(f"\n\tTest set:")
-          print(f"\n\t\tLoss: {MAGENTA}{test_loss/n_batches_test}{DEFAULT}")
+          print(f"\n\t\tLoss: {ANSI.MAGENTA}{test_loss/n_batches_test}{ANSI.DEFAULT}")
 
       def fit(self, X_src_train: np.ndarray, X_src_test: np.ndarray, X_dest_train: np.ndarray, X_dest_test: np.ndarray,
               y_train: np.ndarray, y_test: np.ndarray) -> None:
