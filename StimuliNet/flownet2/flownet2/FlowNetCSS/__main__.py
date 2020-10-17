@@ -17,7 +17,7 @@ def parser() -> ap:
     parser.add_argument("-train", "--train", help="starts training the FlowNetCSS block with the designated resolution", required=False)
     return parser
 
-def main(args: Namespace):
+def main(args: Namespace) -> None:
     if args.train:
        frozen_config = [dict(scope="FlowNetCS", path=os.path.join(os.path.split(flownet_cs.__file__)[0], "weights"))]
        resolution = tuple(list(map(lambda x: int(x), re.findall(r'[0-9]{1,}', args.train))))
