@@ -24,7 +24,7 @@ def main(args: Namespace) -> None:
                         dict(scope="FlowNetSD", path=os.path.join(os.path.split(flownet_sd.__file__)[0], "weights"),
                              patch=[dict(op="conv2d", val=37), dict(op="conv2d_transpose", val=24)])]
        resolution = tuple(list(map(lambda x: int(x), re.findall(r'[0-9]{1,}', args.train))))
-       pipeline = Pipeline(FlowNet2, "DEFAULT", resolution, resolution, checkpoint_path=weights_path, frozen_config=frozen_config,
+       pipeline = Pipeline(FlowNet2, "LONG_SCHEDULE", resolution, resolution, checkpoint_path=weights_path, frozen_config=frozen_config,
                            config=config.LOSS_EVENT+config.SAVE_FLOW)
        X_src_train, X_src_test, X_dest_train, X_dest_test, y_train, y_test = load(resolution, resolution)
        pipeline.fit(X_src_train, X_src_test, X_dest_train, X_dest_test, y_train, y_test)
