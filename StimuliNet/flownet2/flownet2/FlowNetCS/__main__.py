@@ -21,7 +21,7 @@ def main(args: Namespace) -> None:
     if args.train:
        frozen_config = [dict(scope="FlowNetC", path=os.path.join(os.path.split(flownet_c.__file__)[0], "weights"))]
        resolution = tuple(list(map(lambda x: int(x), re.findall(r'[0-9]{1,}', args.train))))
-       pipeline = Pipeline(FlowNetCS, "DEFAULT", resolution, resolution, checkpoint_path=weights_path, frozen_config=frozen_config,
+       pipeline = Pipeline(FlowNetCS, "LONG_SCHEDULE", resolution, resolution, checkpoint_path=weights_path, frozen_config=frozen_config,
                            config=config.LOSS_EVENT+config.SAVE_FLOW)
        X_src_train, X_src_test, X_dest_train, X_dest_test, y_train, y_test = load(resolution, resolution)
        pipeline.fit(X_src_train, X_src_test, X_dest_train, X_dest_test, y_train, y_test)
