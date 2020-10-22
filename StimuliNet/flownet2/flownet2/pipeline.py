@@ -234,7 +234,7 @@ class Pipeline:
           n_batches_test = np.ceil(np.size(y_test, axis=0)/self._batch_size)
           with session.graph.as_default():
                for epoch in range(epoch_, self._n_epoch):
-                   with self._epoch_context(epoch):
+                   with self._epoch_context(epoch+1):
                         self._count = 0
                         train_loss = 0
                         test_loss = 0
