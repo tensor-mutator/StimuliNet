@@ -64,32 +64,56 @@ class Pipeline:
 
       @contextmanager
       def _fit_context(self) -> Generator:
-          self._load_weights()
+          epoch = self._deserialize_weights()
           train_writer, test_writer = self._generate_summary_writer()
-          yield self._session, train_writer, test_writer
-          self._save_weights()
+          yield self._session, train_writer, test_writer, epoch
+          #self._serialize_weights()
           if train_writer and test_writer:
              train_writer.close()
              test_writer.close()
 
-      def _load_weights(self) -> None:
+      @contextmanager
+      def _epoch_context(self, epoch) -> Generator:
+          yield
+          self._serialize_weights(epoch)
+
+      def _deserialize_weights(self) -> None:
           if self._config & config.LOAD_WEIGHTS:
-             with self._session.graph.as_default():
-                  var_list_local_to = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"local/{self._model_name}")
-                  var_list_target_to = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"target/{self._model_name}")
-                  var_list_from = list(map(lambda x: x.name.replace(":0", ""), var_list_local_to))
-                  if glob(os.path.join(self._checkpoint_dir, "{}.ckpt.*".format(self._model_name))):
-                     ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir).model_checkpoint_path
-                     saver = tf.train.Saver(var_list=dict(zip(var_list_from, var_list_local_to)))
-                     saver.restore(self._session, ckpt)
-                     saver = tf.train.Saver(var_list=dict(zip(var_list_from, var_list_target_to)))
-                     saver.restore(self._session, ckpt)
+             self._load_weights()
+             return self._load_epoch()
+          return 0
+
+      def _load_epoch(self) -> int:
+          if glob(os.path.join(self._checkpoint_dir, "{}.ckpt.*".format(self._model_name))):
+             with open(os.path.join(self._checkpoint_dir, "{}.ckpt.epoch".format(self._model_name)), "r") as f:
+                  return int(f.read().strip("/n"))
+          return 0
+
+      def _load_weights(self) -> None:
+          with self._session.graph.as_default():
+               var_list_local_to = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"local/{self._model_name}")
+               var_list_target_to = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"target/{self._model_name}")
+               var_list_from = list(map(lambda x: x.name.replace(":0", ""), var_list_local_to))
+               if glob(os.path.join(self._checkpoint_dir, "{}.ckpt.*".format(self._model_name))):
+                  ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir).model_checkpoint_path
+                  saver = tf.train.Saver(var_list=dict(zip(var_list_from, var_list_local_to)))
+                  saver.restore(self._session, ckpt)
+                  saver = tf.train.Saver(var_list=dict(zip(var_list_from, var_list_target_to)))
+                  saver.restore(self._session, ckpt)
 
       def _save_weights(self) -> None:
           self._session.run(self._update_ops)
           with self._session.graph.as_default():
                saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=f"local/{self._model_name}"))
           saver.save(self._session, os.path.join(self._checkpoint_dir, "{}.ckpt".format(self._model_name)))
+
+      def _save_epoch(self, epoch) -> None:
+          with open(os.path.join(self._checkpoint_dir, "{}.ckpt.epoch".format(self._model_name)), "w") as f:
+               return f.write(str(epoch))
+
+      def _serialize_weights(self, epoch) -> None:
+          self._save_weights()
+          self._save_epoch(epoch)
 
       def _generate_iterator(self) -> tf.data.Iterator:
           dataset = tf.data.Dataset.from_tensor_slices((self._X_src_placeholder, self._X_dest_placeholder, self._y_placeholder))
@@ -195,7 +219,7 @@ class Pipeline:
 
       def _fit(self, X_src_train: np.ndarray, X_src_test: np.ndarray, X_dest_train: np.ndarray, X_dest_test: np.ndarray,
                y_train: np.ndarray, y_test: np.ndarray, session: tf.Session,
-               train_writer: tf.summary.FileWriter, test_writer: tf.summary.FileWriter) -> None:
+               train_writer: tf.summary.FileWriter, test_writer: tf.summary.FileWriter, epoch_: int) -> None:
           def run_(session, total_loss, train=True) -> List:
               if train:
                  _, loss = session.run([self._local_model.grad, self._local_model.loss.output])
@@ -209,34 +233,35 @@ class Pipeline:
           n_batches_train = np.ceil(np.size(y_train, axis=0)/self._batch_size)
           n_batches_test = np.ceil(np.size(y_test, axis=0)/self._batch_size)
           with session.graph.as_default():
-               for epoch in range(self._n_epoch):
-                   self._count = 0
-                   train_loss = 0
-                   test_loss = 0
-                   session.run(self._iterator.initializer, feed_dict={self._X_src_placeholder: X_src_train,
-                                                                      self._X_dest_placeholder: X_dest_train,
-                                                                      self._y_placeholder: y_train})
-                   with tqdm(total=len(y_train)) as progress:
-                        try:
-                           while True:
-                                 train_loss, _ = run_(session, train_loss)
-                                 progress.update(self._batch_size)
-                        except tf.errors.OutOfRangeError:
-                           ...
-                   session.run(self._iterator.initializer, feed_dict={self._X_src_placeholder: X_src_test,
-                                                                      self._X_dest_placeholder: X_dest_test,
-                                                                      self._y_placeholder: y_test})
-                   with tqdm(total=len(y_test)) as progress:
-                        try:
-                           while True:
-                                 test_loss, flow_payload = run_(session, test_loss, train=False)
-                                 self._save_flow(epoch+1, *flow_payload)
-                                 progress.update(self._batch_size)
-                        except tf.errors.OutOfRangeError:
-                           ...
-                   self._print_summary(epoch+1, train_loss, n_batches_train, test_loss, n_batches_test)
-                   self._save_summary(train_writer, epoch=epoch+1, loss=train_loss, n_batches=n_batches_train)
-                   self._save_summary(test_writer, epoch=epoch+1, loss=test_loss, n_batches=n_batches_test)
+               for epoch in range(epoch_, self._n_epoch):
+                   with self._epoch_context(epoch):
+                        self._count = 0
+                        train_loss = 0
+                        test_loss = 0
+                        session.run(self._iterator.initializer, feed_dict={self._X_src_placeholder: X_src_train,
+                                                                           self._X_dest_placeholder: X_dest_train,
+                                                                           self._y_placeholder: y_train})
+                        with tqdm(total=len(y_train)) as progress:
+                             try:
+                                while True:
+                                      train_loss, _ = run_(session, train_loss)
+                                      progress.update(self._batch_size)
+                             except tf.errors.OutOfRangeError:
+                                ...
+                        session.run(self._iterator.initializer, feed_dict={self._X_src_placeholder: X_src_test,
+                                                                           self._X_dest_placeholder: X_dest_test,
+                                                                           self._y_placeholder: y_test})
+                        with tqdm(total=len(y_test)) as progress:
+                             try:
+                                while True:
+                                      test_loss, flow_payload = run_(session, test_loss, train=False)
+                                      self._save_flow(epoch+1, *flow_payload)
+                                      progress.update(self._batch_size)
+                             except tf.errors.OutOfRangeError:
+                                 ...
+                        self._print_summary(epoch+1, train_loss, n_batches_train, test_loss, n_batches_test)
+                        self._save_summary(train_writer, epoch=epoch+1, loss=train_loss, n_batches=n_batches_train)
+                        self._save_summary(test_writer, epoch=epoch+1, loss=test_loss, n_batches=n_batches_test)
 
       def _save_flow(self, epoch: int, src_img: np.ndarray, dest_img: np.ndarray, flow: np.ndarray) -> None:
           if self._config & config.SAVE_FLOW:
@@ -262,8 +287,8 @@ class Pipeline:
 
       def fit(self, X_src_train: np.ndarray, X_src_test: np.ndarray, X_dest_train: np.ndarray, X_dest_test: np.ndarray,
               y_train: np.ndarray, y_test: np.ndarray) -> None:
-          with self._fit_context() as [session, train_writer, test_writer]:
-               self._fit(X_src_train, X_src_test, X_dest_train, X_dest_test, y_train, y_test, session, train_writer, test_writer)
+          with self._fit_context() as [session, train_writer, test_writer, epoch]:
+               self._fit(X_src_train, X_src_test, X_dest_train, X_dest_test, y_train, y_test, session, train_writer, test_writer, epoch)
 
       def predict(self, X_src: np.ndarray, X_dest: np.ndarray) -> tf.Tensor:
           self._load_weights()
