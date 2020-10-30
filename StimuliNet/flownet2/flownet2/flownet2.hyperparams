@@ -9,5 +9,49 @@
                "beta2": 0.999,
                "epsilon": 1e-08,
                "l2": 0.0004
+             },
+  "SHORT_SCHEDULE": {
+               "boundaries": [4000, 8000, 12000, 16000],
+               "learning_rates": [0.005, 0.0025, 0.00125, 0.000625, 0.0003125],
+               "beta1": 0.9,
+               "beta2": 0.999,
+               "epoch": 20000,
+               "batch_size": 64,
+               "batch_norm": false,
+               "epsilon": 1e-08,
+               "l2": 0.0005
+             },
+  "SHORT_V2_SCHEDULE": {
+               "boundaries": [6000, 12000, 18000, 24000],
+               "learning_rates": [0.002, 0.001, 0.0005, 0.00025, 0.000125],
+               "beta1": 0.9,
+               "beta2": 0.999,
+               "epoch": 30000,
+               "batch_size": 64,
+               "batch_norm": false,
+               "epsilon": 1e-08,
+               "l2": 0.0005
+             },
+  "SHORT_FINAL_P1_SCHEDULE": {
+               "boundaries": [6000, 10000],
+               "learning_rates": [0.005, 0.002, 0.001],
+               "beta1": 0.9,
+               "beta2": 0.999,
+               "epoch": 12000,
+               "batch_size": 64,
+               "batch_norm": false,
+               "epsilon": 1e-08,
+               "l2": 0.0005
+             },
+  "SHORT_FINAL_P2_SCHEDULE": {
+               "boundaries": [22000, 28000, 38000],
+               "learning_rates": [0.002, 0.001, 0.0005, 0.00035],
+               "beta1": 0.9,
+               "beta2": 0.999,
+               "epoch": 48000,
+               "batch_size": 64,
+               "batch_norm": false,
+               "epsilon": 1e-08,
+               "l2": 0.0005
              }
 }
