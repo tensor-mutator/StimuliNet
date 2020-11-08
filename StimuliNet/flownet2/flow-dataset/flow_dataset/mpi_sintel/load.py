@@ -12,7 +12,7 @@ train_path = os.path.join(path, "training")
 test_path = os.path.join(path, "test")
 flow_path = os.path.join(train_path, "flow")
 
-def _get_X(resolution: Tuple[int, int], rendering: str) -> np.ndarray:
+def _get_X(resolution: Tuple[int, int], rendering: str, normalize: bool) -> np.ndarray:
     X_path = os.path.join(train_path, rendering)
     dirs = sorted(glob("{}/*".format(X_path)))
     X = np.zeros(shape=[0, 2] + list(resolution) + [3], dtype=np.float32)
@@ -24,7 +24,7 @@ def _get_X(resolution: Tuple[int, int], rendering: str) -> np.ndarray:
             src_img_arr, dest_img_arr = cv2.resize(cv2.imread(src_img), resolution), cv2.resize(cv2.imread(dest_img), resolution)
             img_packed = np.stack([src_img_arr, dest_img_arr], axis=0)
             X = np.concatenate([X, np.expand_dims(img_packed, axis=0)])
-    return X
+    return X/255.0 if normalize else X
 
 def _read_flow(filename: str) -> np.ndarray:
     with open(filename, 'rb') as f:
@@ -50,7 +50,7 @@ def _get_y(resolution: Tuple[int, int]) -> np.ndarray:
     return y
 
 def load(img_resolution: Tuple[int, int], flow_resolution: Tuple[int, int] = None, train_size: float = 0.8, test_size: float = 0.2,
-         rendering: str = "clean") -> List:
+         rendering: str = "clean", normalize: bool = True) -> List:
     y = _get_y(flow_resolution)
-    X = _get_X(img_resolution, rendering)
+    X = _get_X(img_resolution, rendering, normalize)
     return train_test_split(X[:, 0, :, :, :], X[:, 1, :, :, :], y, train_size=train_size, test_size=test_size)
