@@ -23,7 +23,7 @@ def main(args: Namespace) -> None:
        resolution = tuple(list(map(lambda x: int(x), re.findall(r'[0-9]{1,}', args.train))))
        pipeline = Pipeline(FlowNetCSS, "LONG_SCHEDULE", resolution, resolution, checkpoint_path=weights_path, frozen_config=frozen_config,
                            config=config.LOSS_EVENT+config.SAVE_FLOW)
-       X_src_train, X_src_test, X_dest_train, X_dest_test, y_train, y_test = load(resolution, resolution)
+       X_src_train, X_src_test, X_dest_train, X_dest_test, y_train, y_test = load(resolution, resolution, normalize=True)
        pipeline.fit(X_src_train, X_src_test, X_dest_train, X_dest_test, y_train, y_test)
     if args.get_graph:
        pipeline = Pipeline(FlowNetCSS, "LONG_SCHEDULE", (512, 512), (512, 512), checkpoint_path=weights_path, config=config.LOSS_EVENT+config.SAVE_FLOW)
