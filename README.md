@@ -1,6 +1,9 @@
 # A <i>FlowNet2.0</i> library
 A <i>FlowNet2.0</i> implementation with TensorFlow
 
+#### Path to <i>MPI Sintel</i> dataset
+flownet2/flow-dataset/flow_dataset/mpi_sintel/MPISintel/
+
 #### Installation steps
 ```bash
 (flownet2) poetry install
