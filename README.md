@@ -1,5 +1,5 @@
 # A <i>FlowNet2.0</i> library
-A <i>FlowNet2.0</i> implementation with TensorFLow
+A <i>FlowNet2.0</i> implementation with TensorFlow
 
 #### Installation steps
 ```bash
